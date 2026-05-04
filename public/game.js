@@ -356,6 +356,7 @@ function setScene(area) {
 }
 
 function renderAll() {
+    world.classList.toggle('mystery-solved', Boolean(game.firstSolved));
     renderCats();
     renderAreas();
     updateHud();

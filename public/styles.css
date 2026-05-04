@@ -264,6 +264,7 @@ p {
 .world:not(.scene-camp) .den,
 .world:not(.scene-camp) .kit,
 .world:not(.scene-camp) .evidence,
+.world.mystery-solved .evidence,
 .world:not(.scene-camp):not(.scene-moonpool) .highrock {
     display: none;
 }
