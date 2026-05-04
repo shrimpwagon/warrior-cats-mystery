@@ -476,9 +476,9 @@ function murdererCat() {
 }
 
 function updateHud() {
-    const clueTotal = Math.min(6, foundClues.size);
+    const clueTotal = Math.min(3, foundClues.size);
     const mateTrust = game.mate ? trustFor(game.mate) : Math.max(0, ...Object.values(game.trust));
-    clueCount.textContent = game.firstSolved ? `Trust ${mateTrust}/3${game.rose ? ' Rose' : ''}` : `Clues ${clueTotal}/6`;
+    clueCount.textContent = game.firstSolved ? `Trust ${mateTrust}/3${game.rose ? ' Rose' : ''}` : `Clues ${clueTotal}/3`;
     dayCount.textContent = game.firstSolved ? `Day ${game.day}` : `Day ${game.day}/${game.firstLimit}`;
     rankBadge.textContent = game.rank;
     preyCount.textContent = `Prey ${game.prey}${game.preyInMouth ? ' (in mouth)' : ''}`;
@@ -974,16 +974,20 @@ function speak(cat) {
         const line = questioned.has(cat.name)
             ? `Stop asking me things. Willowfur should have kept her nose out of my nest.`
             : `Murder? I was asleep. No, I did not leave camp. Why are you staring at my scratch?`;
+        if (!questioned.has(cat.name) && questioned.size < 2) {
+            addNote(`${cat.rank} ${cat.name}: ${cat.clue}`);
+        }
         questioned.add(cat.name);
-        addNote(`${cat.rank} ${cat.name}: ${cat.clue}`);
         setMessage(`${cat.name}, ${cat.rank} (${cat.gender})`, line);
         maybeEnableAccusation();
         return;
     }
 
     const line = (firstLines[cat.name]?.[questioned.has(cat.name) ? 1 : 0] || 'They twitch their whiskers.').replaceAll('Ravenstripe', firstMurderer);
+    if (!questioned.has(cat.name) && questioned.size < 2) {
+        addNote(`${cat.rank} ${cat.name}: ${cat.clue}`);
+    }
     questioned.add(cat.name);
-    addNote(`${cat.rank} ${cat.name}: ${cat.clue}`);
     setMessage(`${cat.name}, ${cat.rank} (${cat.gender})`, line);
     maybeEnableAccusation();
 }
@@ -1105,7 +1109,7 @@ function buildSuspectBoard() {
 }
 
 function maybeEnableAccusation() {
-    if (foundClues.size < 6 || game.firstSolved) {
+    if (foundClues.size < 3 || game.firstSolved) {
         return;
     }
     chapter.textContent = 'The pattern is clear. Name the killer.';
