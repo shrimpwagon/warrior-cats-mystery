@@ -214,6 +214,72 @@ const baseAlibis = {
     Sorreltail: 'Returned moss bedding to the nursery for the queens.'
 };
 
+const friendlyLines = {
+    Mistclaw: [
+        'Mistclaw bumps your shoulder. "I always feel calmer when you patrol with me."',
+        'Mistclaw says, "Save me a spot at the prey-pile, would you?"',
+        'Mistclaw chuckles. "I trust your nose more than my own these days."'
+    ],
+    Brindleleaf: [
+        'Brindleleaf grins. "You hunt cleaner than half the warriors here."',
+        'Brindleleaf nods to you. "Walk the ferns with me later, hm?"',
+        'Brindleleaf says, "I could use your eyes on the elder den brambles tomorrow."'
+    ],
+    Cloudspark: [
+        'Cloudspark butts her head against you. "There you are. The day was missing something."',
+        'Cloudspark purrs. "You always smell of pine and sun."',
+        'Cloudspark says softly, "I sleep better when I know you are nearby."'
+    ],
+    Sorreltail: [
+        'Sorreltail flicks her tail playfully. "Did you come to share tongues, or just to stare?"',
+        'Sorreltail nudges your paw. "Sit. The clearing is warm today."',
+        'Sorreltail says, "I saved a thrush for you on the prey-pile."'
+    ],
+    Pinefoot: [
+        'Pinefoot grunts approvingly. "Solid work this moon. The clan notices."',
+        'Pinefoot says, "Drop by the barrier later. I want a second opinion on the new pine."',
+        'Pinefoot smiles, rare and small. "You make this place feel steadier."'
+    ],
+    Ravenstripe: [
+        'Ravenstripe huffs. "Fine. You are not the worst cat to share a sunbeam with."',
+        'Ravenstripe lowers his head. "I owe you for the trust. I will not forget."',
+        'Ravenstripe says, "Hunt with me at moonhigh. The river path is mine alone."'
+    ]
+};
+
+const flirtyLines = {
+    Mistclaw: [
+        'Mistclaw winds against your side. "I keep finding excuses to stand near you."',
+        'Mistclaw murmurs, "If you ever wanted to share a nest, I would not say no."',
+        'Mistclaw rests his head on your shoulder. "Stay a heartbeat longer. Please."'
+    ],
+    Brindleleaf: [
+        'Brindleleaf swishes his tail across yours. "Is it strange that I dream about you most nights?"',
+        'Brindleleaf says quietly, "I would chase the sun off the moor for you, you know."',
+        'Brindleleaf grins. "Nothing tastes as good as prey we share."'
+    ],
+    Cloudspark: [
+        'Cloudspark presses her nose to yours. "Some warriors are clouds. You are the sky."',
+        'Cloudspark whispers, "I have wanted to ask. Will you let me curl beside you tonight?"',
+        'Cloudspark glances away, then back. "I have said too much, but I do not regret it."'
+    ],
+    Sorreltail: [
+        'Sorreltail laughs, eyes warm. "Quit looking at me like that. The whole clan can tell."',
+        'Sorreltail brushes her tail under your chin. "Maybe I will let you catch me one day."',
+        'Sorreltail says, "If you ever ask the right question, I have the right answer."'
+    ],
+    Pinefoot: [
+        'Pinefoot clears his throat. "I am not good at this. But I would like to be your mate."',
+        'Pinefoot watches you carefully. "Tell me if I should stop. I will not be foolish."',
+        'Pinefoot rests his paw briefly on yours. "Some bonds steady a clan. Maybe ours could."'
+    ],
+    Ravenstripe: [
+        'Ravenstripe glances sideways. "Stop making me feel things, will you?"',
+        'Ravenstripe says low, "If anyone is going to share my nest, it had better be you."',
+        'Ravenstripe almost smiles. "I never asked for company. I am asking now."'
+    ]
+};
+
 function alibiFor(name) {
     if (name === firstMurderer) {
         return `${name} was seen near Willowfur's nest before moonhigh. They will not say why they were there.`;
@@ -391,7 +457,8 @@ function resetGame(showOverlay = true) {
         suspectStatus: {},
         alibiUsed: false,
         furBushFound: false,
-        kittypetMet: false
+        kittypetMet: false,
+        trustReachedDay: {}
     };
     playerState.x = 120;
     playerState.y = 0;
@@ -1058,10 +1125,14 @@ function speak(cat) {
     }
     if (game.firstSolved) {
         game.talkCounts = game.talkCounts || {};
+        game.trustReachedDay = game.trustReachedDay || {};
         game.talkCounts[cat.name] = (game.talkCounts[cat.name] || 0) + 1;
         if (game.talkCounts[cat.name] % 6 === 0 && trustFor(cat.name) < 3) {
             game.trust[cat.name] = trustFor(cat.name) + 1;
             addNote(`${cat.name} trust increased to ${trustFor(cat.name)}/3 from spending time together.`);
+        }
+        if (trustFor(cat.name) >= 3 && game.trustReachedDay[cat.name] === undefined) {
+            game.trustReachedDay[cat.name] = game.day;
         }
         if (game.preyInMouth) {
             givePrey(cat.name);
@@ -1069,6 +1140,13 @@ function speak(cat) {
         }
         if (canMateWith(cat) && game.rose && trustFor(cat.name) >= 3 && !game.mate) {
             proposeMate(cat.name);
+            return;
+        }
+        const daysAtMax = game.trustReachedDay[cat.name] !== undefined
+            ? game.day - game.trustReachedDay[cat.name]
+            : -1;
+        if (canMateWith(cat) && trustFor(cat.name) >= 3 && !game.mate && !game.rose && daysAtMax >= 3) {
+            askForCatMate(cat);
             return;
         }
         if (cat.name === game.mate) {
@@ -1079,12 +1157,21 @@ function speak(cat) {
             setMessage(`${cat.name}, ${cat.rank} (${cat.gender})`, `Wow, you are deputy now? Congratulations, ${warriorName()}. Moonclan trusts your paws.`);
             return;
         }
-        const trust = ` Trust ${trustFor(cat.name)}/3.`;
-        setMessage(`${cat.name}, ${cat.rank} (${cat.gender})`, `${rotatingText(cat.name, [
-            firstLines[cat.name]?.[1] || 'They flick their tail in greeting.',
-            'The camp feels different today.',
-            'Keep your ears open. Every day changes the forest.'
-        ])}${trust}`);
+        const trustLvl = trustFor(cat.name);
+        let pool;
+        if (trustLvl >= 3 && canMateWith(cat) && flirtyLines[cat.name]) {
+            pool = flirtyLines[cat.name];
+        } else if (trustLvl >= 1 && friendlyLines[cat.name]) {
+            pool = friendlyLines[cat.name];
+        } else {
+            pool = [
+                firstLines[cat.name]?.[1] || 'They flick their tail in greeting.',
+                'The camp feels different today.',
+                'Keep your ears open. Every day changes the forest.'
+            ];
+        }
+        const trust = ` Trust ${trustLvl}/3.`;
+        setMessage(`${cat.name}, ${cat.rank} (${cat.gender})`, `${rotatingText(`${cat.name}-t${trustLvl}`, pool)}${trust}`);
         return;
     }
 
@@ -1672,6 +1759,28 @@ function proposeMate(name) {
     addNote(`${name} became your mate after you gave the special rose.`);
     setMessage(name, `${name} accepts the special rose. "Yes. I will be your mate."`);
     updateHud();
+}
+
+function askForCatMate(cat) {
+    if (game.mate) {
+        return;
+    }
+    accusePanel.innerHTML = '<button id="acceptMateBtn" type="button">Yes</button><button id="declineMateBtn" type="button">Not yet</button>';
+    document.getElementById('acceptMateBtn').addEventListener('click', () => {
+        game.mate = cat.name;
+        addNote(`${cat.name} asked you to be their mate, and you said yes.`);
+        setMessage(cat.name, `${cat.name} touches their nose to yours. "Then it is settled. We are mates."`);
+        accusePanel.innerHTML = '<button id="sleepBtn" type="button">Sleep in Warrior Den</button>';
+        document.getElementById('sleepBtn').addEventListener('click', sleepInWarriorDen);
+        updateHud();
+    });
+    document.getElementById('declineMateBtn').addEventListener('click', () => {
+        addNote(`${cat.name} asked to be your mate. You asked them to wait.`);
+        setMessage(cat.name, `${cat.name} dips their head. "Take your time. I am not going anywhere."`);
+        accusePanel.innerHTML = '<button id="sleepBtn" type="button">Sleep in Warrior Den</button>';
+        document.getElementById('sleepBtn').addEventListener('click', sleepInWarriorDen);
+    });
+    setMessage(`${cat.name} (${cat.gender})`, `${cat.name} steps close, voice soft. "I have been thinking. Will you be my mate?"`);
 }
 
 function canMateWith(cat) {
