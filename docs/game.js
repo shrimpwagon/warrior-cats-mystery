@@ -424,10 +424,17 @@ function renderCats() {
     }
 
     if (game.currentArea === 'moonpool' && (!game.moonpoolDone || game.ghostMode)) {
-        addStarclanNpc('Silverstar', 1390);
-        addStarclanNpc('Moonwhisper', 1660);
-        addStarclanNpc('Frostheart', 1900);
-        renderGhostCats();
+        if (game.ghostMode) {
+            deadCats().forEach((cat, index) => {
+                const col = index % 4;
+                const row = Math.floor(index / 4);
+                addDeadNpc(cat, 1280 + col * 220, groundY + 28 + row * 70);
+            });
+        } else {
+            addStarclanNpc('Silverstar', 1390);
+            addStarclanNpc('Moonwhisper', 1660);
+            addStarclanNpc('Frostheart', 1900);
+        }
         return;
     }
 
@@ -455,6 +462,9 @@ function renderCampKits() {
         const stage = growthStage(kit.bornDay);
         const suffix = stage === 'warrior' ? 'heart' : stage === 'apprentice' ? 'paw' : 'kit';
         const name = `${kit.base}${suffix}`;
+        if (!shouldShowLivingCat(name)) {
+            return;
+        }
         const x = stage === 'warrior' ? 1780 + index * 82 : stage === 'apprentice' ? 1220 + index * 78 : 880 + index * 64;
         addNpc(name, stage === 'warrior' ? 'Warrior' : stage === 'apprentice' ? 'Apprentice' : 'Kit', x, groundY, kit.fur, kit.mark, () => setMessage(name, rotatingText(name, [
             stage === 'kit' ? `${name} tumbles through the clearing.` : `${name} asks to practice patrol steps.`,
@@ -482,6 +492,9 @@ function renderAbandonedKitInCamp() {
     const rank = game.abandonedKit.stage === 'warrior' ? 'Warrior' : game.abandonedKit.stage === 'apprentice' ? 'Apprentice' : 'Kit';
     const suffix = game.abandonedKit.stage === 'warrior' ? 'heart' : game.abandonedKit.stage === 'apprentice' ? 'paw' : 'kit';
     const name = `River${suffix}`;
+    if (!shouldShowLivingCat(name)) {
+        return;
+    }
     addNpc(name, rank, game.abandonedKit.stage === 'warrior' ? 1880 : 980, groundY, '#8f8068', '#e1d3ae', () => {
         if (game.abandonedKit.stage === 'apprentice') {
             accusePanel.innerHTML = '<button id="trainRiverpaw" type="button">Train Riverpaw</button><button id="huntRiverpaw" type="button">Hunt with Riverpaw</button><button id="fightRiverpaw" type="button">Fight Train</button>';
@@ -534,22 +547,30 @@ function shouldShowLivingCat(name) {
     if (game.mateKilled && name === game.mate) {
         return false;
     }
+    if (game.patrolPending && game.patrolPending.cats.includes(name)) {
+        return false;
+    }
     return true;
 }
 
 function deadCats() {
     const dead = [
-        { name: 'Silverstar', rank: 'Leader', fur: '#d9ecff', mark: '#ffffff' },
-        { name: 'Moonwhisper', rank: 'Deputy', fur: '#cfdfff', mark: '#ffffff' },
-        { name: 'Frostheart', rank: 'Warrior', fur: '#e8f5ff', mark: '#b9d4ff' },
-        { name: 'Littlekit', rank: 'Kit', fur: '#f5f0ff', mark: '#b7ccff' }
+        { name: 'Silverstar', rank: 'Leader', fur: '#d9ecff', mark: '#ffffff', homeScene: 'camp' },
+        { name: 'Moonwhisper', rank: 'Deputy', fur: '#cfdfff', mark: '#ffffff', homeScene: 'camp' },
+        { name: 'Frostheart', rank: 'Warrior', fur: '#e8f5ff', mark: '#b9d4ff', homeScene: 'camp' },
+        { name: 'Littlekit', rank: 'Kit', fur: '#f5f0ff', mark: '#b7ccff', homeScene: 'camp' },
+        { name: 'Hawkfeather', rank: 'Warrior', fur: '#cfd9e9', mark: '#7c8ba2', homeScene: 'borders' },
+        { name: 'Stoneclaw', rank: 'Deputy', fur: '#c9d4dd', mark: '#e8eef3', homeScene: 'borders' },
+        { name: 'Briarwhisker', rank: 'Elder', fur: '#dac9b9', mark: '#fff5e8', homeScene: 'borders' },
+        { name: 'Tallnose', rank: 'Warrior', fur: '#cfe1f2', mark: '#eaf3ff', homeScene: 'hunting' },
+        { name: 'Mossheart', rank: 'Warrior', fur: '#d9ecdf', mark: '#ecf5ee', homeScene: 'hunting' }
     ];
     if (game.ashstarLeader) {
-        dead.push({ name: 'Whiskerstar', rank: 'Leader', fur: '#d6c9a8', mark: '#ffffff' });
+        dead.push({ name: 'Whiskerstar', rank: 'Leader', fur: '#d6c9a8', mark: '#ffffff', homeScene: 'camp' });
     }
     if (game.mateKilled && game.mate) {
         const mate = cast.find((cat) => cat.name === game.mate);
-        dead.push({ name: game.mate, rank: 'Warrior', fur: mate?.fur || '#ddeaff', mark: mate?.mark || '#ffffff' });
+        dead.push({ name: game.mate, rank: 'Warrior', fur: mate?.fur || '#ddeaff', mark: mate?.mark || '#ffffff', homeScene: 'camp' });
     }
     return dead;
 }
@@ -559,24 +580,22 @@ function isDeadCatName(name) {
 }
 
 function renderGhostCats() {
-    if (!game.ghostMode) {
+    if (!game.ghostMode || game.currentArea === 'moonpool') {
         return;
     }
     const placements = {
-        camp: [640, 1160, 1960],
+        camp: [640, 1160, 1660, 2160],
         borders: [690, 1320, 1880],
-        hunting: [720, 1460, 2140],
-        fighting: [720, 1320, 1900],
-        sunclan: [820, 1400, 2060],
-        gathering: [700, 1540, 1960],
-        moonpool: [1240, 1780, 2160]
+        hunting: [820, 1640]
     };
-    const xs = placements[game.currentArea] || [720, 1320, 1900];
-    const alreadyShown = game.currentArea === 'moonpool' ? new Set(['Silverstar', 'Moonwhisper', 'Frostheart']) : new Set();
-    deadCats()
-        .filter((cat) => !alreadyShown.has(cat.name))
-        .slice(0, xs.length)
-        .forEach((cat, index) => addDeadNpc(cat, xs[index], groundY + 34 + (index % 2) * 24));
+    const xs = placements[game.currentArea];
+    if (!xs) {
+        return;
+    }
+    const sceneCats = deadCats().filter((cat) => cat.homeScene === game.currentArea);
+    sceneCats.slice(0, xs.length).forEach((cat, index) => {
+        addDeadNpc(cat, xs[index], groundY + 34 + (index % 2) * 22);
+    });
 }
 
 function addDeadNpc(cat, x, bottom) {
@@ -584,9 +603,81 @@ function addDeadNpc(cat, x, bottom) {
     npcLayer.lastElementChild.classList.add('starclan');
 }
 
+const starclanLines = {
+    Silverstar: [
+        'Silverstar tilts a starry head. "I led Moonclan when these stones were younger."',
+        '"A leader\'s strength is patience, Brambleclaw. You learned it well."',
+        '"Watch the apprentices. Even Starclan still teaches them in dreams."',
+        '"The stars hold every name we ever called. None of you are forgotten."'
+    ],
+    Moonwhisper: [
+        '"Being deputy was hard. Being a guide is harder. I am proud of you."',
+        '"Stars do not blink. They count every brave choice you ever made."',
+        '"If a cat ever betrays the warrior code, you will feel cold here."',
+        '"You can hear the wind without ears now. Listen for the kits."'
+    ],
+    Frostheart: [
+        'Frostheart bumps your shoulder. "Remember when winter froze the river? You\'d have loved fishing."',
+        '"Up here, prey runs forever. We hunt for the joy of it."',
+        '"Tell the kits I am proud of every one of them."',
+        '"I died too soon, but Starclan made me whole again."'
+    ],
+    Littlekit: [
+        'Littlekit pounces on a dust-mote of starlight. "Play with me, Brambleclaw!"',
+        'Littlekit yawns. "Starclan is a soft nest with no claws."',
+        'Littlekit tilts their head. "Why are the living cats sad? It is so warm here."',
+        'Littlekit nudges your paw. "I have a thousand mossballs now."'
+    ],
+    Hawkfeather: [
+        '"I patrolled this border for twelve seasons. The scent never lies."',
+        '"Sunclan is not your enemy. Carelessness is."',
+        '"Stand here long enough and you remember every paw that crossed this line."',
+        '"My eyes were sharper than my claws. Tell the deputies that."'
+    ],
+    Stoneclaw: [
+        '"My bones lie under these river stones. I keep watch even now."',
+        '"A deputy carries the clan in their chest, Brambleclaw. You did well."',
+        '"Borders shift, but pride should not."',
+        '"I would have liked to meet your mate. They sound brave."'
+    ],
+    Briarwhisker: [
+        '"Pull up a tail, young one. Elders never run out of stories, even in Starclan."',
+        '"I outlived three leaders and still watched kits become warriors."',
+        '"The brambles up here do not snag fur. It is the only thing I miss."',
+        '"You will find old elders telling new stories every dawn."'
+    ],
+    Tallnose: [
+        '"Mice still squeak in Starclan. They run faster, though."',
+        '"I taught half of Moonclan to hunt downwind. Tell them I still watch."',
+        '"You smell of pine. Were you stalking near the roots?"',
+        '"The fern path catches every misstep. Step lightly when you walk it."'
+    ],
+    Mossheart: [
+        '"This forest is greener up close, when you walk it as a star."',
+        '"I died chasing a fox away from the queens. I would do it again."',
+        '"Bring the apprentices a clean catch and the prey-pile will sing."',
+        '"Listen to the moss. It speaks softer than the wind, but truer."'
+    ],
+    Whiskerstar: [
+        '"My old camp still feels close, Brambleclaw. Thank you for naming the cat that took my life."',
+        '"Lead with patience. That is the only lesson worth handing on."',
+        '"Tell Ashstar her lives are well-earned."',
+        '"I am at peace, even with blood on the brambles."'
+    ]
+};
+
 function starclanLine(name) {
     if (name === game.mate) {
-        return `${name} presses a starry muzzle to yours. "I found you again. The murderer cannot follow us here."`;
+        return rotatingText(`mate-${name}`, [
+            `${name} presses a starry muzzle to yours. "I found you again. The murderer cannot follow us here."`,
+            `${name} curls beside you. "Starclan is gentler than I expected."`,
+            `${name} purrs. "We get to walk together for as long as the stars hold."`,
+            `${name} looks toward the camp. "Our kits are still down there. They are doing well."`
+        ]);
+    }
+    const lines = starclanLines[name];
+    if (lines) {
+        return rotatingText(name, lines);
     }
     return rotatingText(name, [
         'The stars under their paws ripple like water.',
@@ -599,7 +690,13 @@ function ghostFeelingLine(name) {
     return rotatingText(`ghost-${name}`, [
         `${name} shivers. "Did you feel cold stars brush past?"`,
         `${name} looks through you. "Something unseen is standing here."`,
-        `${name} lowers their ears. "Starclan feels close today."`
+        `${name} lowers their ears. "Starclan feels close today."`,
+        `${name} stares at empty air. "Maybe it is Brambleclaw, watching over us."`,
+        `${name} flicks their tail. "The wind smells of moss and old ash."`,
+        `${name} pauses mid-step. "I felt a paw on my shoulder. There is nothing there."`,
+        `${name} murmurs, "Brambleclaw, if you can hear me, the clan still misses you."`,
+        `${name} blinks slowly. "I dreamed of stars last night. They knew my name."`,
+        `${name} touches the ground with their nose. "The earth feels colder where you stand."`
     ]);
 }
 
@@ -775,6 +872,10 @@ function enterDen(name) {
     if (!detail || !game.started || game.currentArea !== 'camp') {
         return;
     }
+    if (game.ghostMode) {
+        setMessage('Starclan', 'Your starry paws drift past the ferns. Living dens are no longer for you.');
+        return;
+    }
     playerState.insideDen = true;
     keys.clear();
     denTitle.textContent = name;
@@ -908,9 +1009,10 @@ function visitArea(area) {
             renderAreas();
         }
         if (game.firstSolved) {
-            accusePanel.innerHTML = '<button id="sleepBtn" type="button">Sleep in Warrior Den</button>';
+            const sleepLabel = game.ghostMode ? 'Drift Until Dusk' : 'Sleep in Warrior Den';
+            accusePanel.innerHTML = `<button id="sleepBtn" type="button">${sleepLabel}</button>`;
             document.getElementById('sleepBtn').addEventListener('click', sleepInWarriorDen);
-            if (game.preyInMouth) {
+            if (!game.ghostMode && game.preyInMouth) {
                 accusePanel.insertAdjacentHTML('beforeend', '<button id="givePreyCampBtn" type="button">Give Prey to Sorreltail</button>');
                 document.getElementById('givePreyCampBtn').addEventListener('click', () => givePrey('Sorreltail'));
             }
@@ -1173,9 +1275,9 @@ function becomeGhost() {
         playOverlay.classList.remove('fade-out');
         updateControlsVisibility();
     }, 520);
-    accusePanel.innerHTML = '<button id="sleepBtn" type="button">Drift Until Dawn</button>';
+    accusePanel.innerHTML = '<button id="sleepBtn" type="button">Drift Until Dusk</button>';
     document.getElementById('sleepBtn').addEventListener('click', sleepInWarriorDen);
-    addNote('You chose to keep playing as a ghost. Living cats only sense your presence.');
+    addNote('You chose to keep playing as a ghost. Living cats only sense your presence. You can no longer enter dens or organize patrols.');
     renderAll();
     setMessage('Starclan', 'Your pelt turns starry. You can float through Moonclan and visit the Moonpool whenever you want.');
 }
@@ -1191,7 +1293,7 @@ function updateGhostTimeline() {
 }
 
 function renderDeputyActions() {
-    if (!game.ashstarLeader || game.currentArea !== 'camp' || game.deputyDay === game.day || game.patrolPending) {
+    if (!game.ashstarLeader || game.ghostMode || game.currentArea !== 'camp' || game.deputyDay === game.day || game.patrolPending) {
         return;
     }
     accusePanel.innerHTML = '<button id="organizePatrolBtn" type="button">Organize Patrol</button><button id="sleepBtn" type="button">Sleep in Warrior Den</button>';
@@ -1250,7 +1352,8 @@ function sendPatrol() {
     addNote(`${game.patrolSelected.join(', ')} left on patrol.`);
     accusePanel.innerHTML = '<button id="sleepBtn" type="button">Sleep in Warrior Den</button>';
     document.getElementById('sleepBtn').addEventListener('click', sleepInWarriorDen);
-    setMessage('Patrol', `${game.patrolSelected.join(', ')} head out. Sleep to hear what they encounter tomorrow.`);
+    setMessage('Patrol', `${game.patrolSelected.join(', ')} head out. They will return tomorrow with news.`);
+    renderCats();
 }
 
 function resolvePatrol() {
@@ -1275,6 +1378,7 @@ function resolvePatrol() {
     };
     addNote(`${cats.join(', ')} returned from patrol with news: ${reports[outcome]}.`);
     setMessage('Patrol Report', `${cats.join(', ')} report ${reports[outcome]}.`);
+    renderCats();
     renderDeputyActions();
 }
 
@@ -1310,7 +1414,8 @@ function finishGathering() {
     game.firstGatheringDone = true;
     game.gatheringActive = false;
     setScene('camp');
-    accusePanel.innerHTML = '<button id="sleepBtn" type="button">Sleep in Warrior Den</button>';
+    const sleepLabel = game.ghostMode ? 'Drift Until Dusk' : 'Sleep in Warrior Den';
+    accusePanel.innerHTML = `<button id="sleepBtn" type="button">${sleepLabel}</button>`;
     document.getElementById('sleepBtn').addEventListener('click', sleepInWarriorDen);
     if (first) {
         game.ashstarAwayReturnDay = game.day + 1;
