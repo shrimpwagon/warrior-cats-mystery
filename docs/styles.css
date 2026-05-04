@@ -1445,22 +1445,24 @@ dialog header {
 
 .undo-btn {
     position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 36px;
-    height: 36px;
+    top: -8px;
+    right: -8px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    background: rgba(7, 14, 20, 0.72);
+    background: rgba(7, 14, 20, 0.85);
     color: #cceeff;
-    border: 1px solid rgba(204, 238, 255, 0.32);
-    font-size: 1.2rem;
+    border: 1px solid rgba(204, 238, 255, 0.5);
+    font-size: 1.4rem;
     cursor: pointer;
     line-height: 1;
+    z-index: 5;
 }
 
-.undo-btn:disabled {
-    opacity: 0.35;
-    cursor: default;
+.undo-btn:hover {
+    background: rgba(40, 60, 80, 0.92);
+    border-color: #f0e3a8;
+    color: #f0e3a8;
 }
 
 #genderBtn {
