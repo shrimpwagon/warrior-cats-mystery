@@ -31,6 +31,11 @@ const overlayText = playOverlay.querySelector('p');
 const pcModeBtn = document.getElementById('pcModeBtn');
 const mobileModeBtn = document.getElementById('mobileModeBtn');
 const mobileControls = document.getElementById('mobileControls');
+const previewCat = document.getElementById('previewCat');
+const previewName = document.getElementById('previewName');
+const prefixDisplay = document.getElementById('prefixDisplay');
+const peltPicker = document.getElementById('peltPicker');
+const changeNameBtn = document.getElementById('changeNameBtn');
 
 const worldWidth = 3200;
 const groundY = 90;
@@ -113,6 +118,116 @@ function freshCast() {
 
 function catMarkup() {
     return '<span class="tail"></span><span class="body"></span><span class="head"></span><span class="leg l1"></span><span class="leg l2"></span><span class="leg l3"></span><span class="leg l4"></span>';
+}
+
+const pelts = [
+    { name: 'Brown', fur: '#b77b4f', mark: '#5d3f2c' },
+    { name: 'Black', fur: '#3a3733', mark: '#7c8087' },
+    { name: 'Cream', fur: '#e6d4a8', mark: '#9b7350' },
+    { name: 'Gray', fur: '#8b96a3', mark: '#cfd9e0' },
+    { name: 'Ginger', fur: '#cf7a3a', mark: '#f4c79a' }
+];
+
+let currentPrefix = 'Bramble';
+let currentFurIndex = 0;
+
+function playerPrefix() {
+    return game?.playerPrefix || currentPrefix || 'Bramble';
+}
+
+function apprenticeName() {
+    return `${playerPrefix()}paw`;
+}
+
+function warriorName() {
+    return `${playerPrefix()}claw`;
+}
+
+function playerName() {
+    return game?.rank === 'Apprentice' ? apprenticeName() : warriorName();
+}
+
+function playerFur() {
+    return game?.playerFur || pelts[currentFurIndex].fur;
+}
+
+function playerMark() {
+    return game?.playerMark || pelts[currentFurIndex].mark;
+}
+
+function sanitizePrefix(raw) {
+    const cleaned = (raw || '').trim().replace(/[^a-zA-Z]/g, '').slice(0, 12);
+    if (!cleaned) {
+        return 'Bramble';
+    }
+    return cleaned.charAt(0).toUpperCase() + cleaned.slice(1).toLowerCase();
+}
+
+function updateTitlePreview() {
+    const pelt = pelts[currentFurIndex];
+    if (prefixDisplay) {
+        prefixDisplay.textContent = currentPrefix;
+    }
+    if (previewName) {
+        previewName.textContent = `${currentPrefix}paw`;
+    }
+    if (previewCat) {
+        previewCat.innerHTML = catMarkup();
+        previewCat.style.setProperty('--fur', pelt.fur);
+        previewCat.style.setProperty('--mark', pelt.mark);
+    }
+}
+
+function selectPelt(index) {
+    currentFurIndex = index;
+    if (game) {
+        const pelt = pelts[index];
+        game.playerFur = pelt.fur;
+        game.playerMark = pelt.mark;
+        game.playerFurIndex = index;
+        if (player) {
+            player.style.setProperty('--fur', pelt.fur);
+            player.style.setProperty('--mark', pelt.mark);
+        }
+    }
+    if (peltPicker) {
+        peltPicker.querySelectorAll('.pelt-swatch').forEach((btn, idx) => {
+            btn.classList.toggle('selected', idx === index);
+        });
+    }
+    updateTitlePreview();
+}
+
+function buildPeltPicker() {
+    if (!peltPicker) {
+        return;
+    }
+    peltPicker.innerHTML = '';
+    pelts.forEach((pelt, index) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'pelt-swatch';
+        btn.title = pelt.name;
+        btn.setAttribute('aria-label', `${pelt.name} pelt`);
+        btn.style.setProperty('--swatch', pelt.fur);
+        if (index === currentFurIndex) {
+            btn.classList.add('selected');
+        }
+        btn.addEventListener('click', () => selectPelt(index));
+        peltPicker.appendChild(btn);
+    });
+}
+
+function promptForPrefix() {
+    const raw = window.prompt('Enter your name prefix (letters only). It becomes "<name>paw" then "<name>claw".', currentPrefix);
+    if (raw === null) {
+        return;
+    }
+    currentPrefix = sanitizePrefix(raw);
+    if (game) {
+        game.playerPrefix = currentPrefix;
+    }
+    updateTitlePreview();
 }
 
 function setMessage(who, text) {
@@ -204,7 +319,11 @@ function resetGame(showOverlay = true) {
             { base: 'Pebble', bornDay: 1, fur: '#c99762', mark: '#f5d095' },
             { base: 'Moss', bornDay: 1, fur: '#ded8c4', mark: '#857d67' },
             { base: 'Tiny', bornDay: 1, fur: '#514132', mark: '#b8a087' }
-        ]
+        ],
+        playerPrefix: currentPrefix,
+        playerFurIndex: currentFurIndex,
+        playerFur: pelts[currentFurIndex].fur,
+        playerMark: pelts[currentFurIndex].mark
     };
     playerState.x = 120;
     playerState.y = 0;
@@ -221,7 +340,8 @@ function resetGame(showOverlay = true) {
     updateControlsVisibility();
     setScene('camp');
     renderAll();
-    setMessage('Bramblepaw', 'Choose PC or Mobile, then press Start to begin your life in Moonclan.');
+    setMessage(apprenticeName(), 'Choose PC or Mobile, then press Start to begin your life in Moonclan.');
+    updateTitlePreview();
 }
 
 function chooseMurderer() {
@@ -266,7 +386,7 @@ function startGame() {
         playOverlay.classList.remove('fade-out');
         updateControlsVisibility();
     }, 520);
-    setMessage('Moonclan', `You are Bramblepaw, a ${game.gender}. Willowfur has been murdered. Find the killer before day ${game.firstLimit} ends.`);
+    setMessage('Moonclan', `You are ${apprenticeName()}, a ${game.gender}. Willowfur has been murdered. Find the killer before day ${game.firstLimit} ends.`);
     renderInvestigationActions();
 }
 
@@ -367,6 +487,13 @@ function renderCats() {
     npcLayer.innerHTML = '';
     player.innerHTML = catMarkup();
     player.classList.toggle('ghost-player', Boolean(game.ghostMode));
+    if (!game.ghostMode) {
+        player.style.setProperty('--fur', playerFur());
+        player.style.setProperty('--mark', playerMark());
+    } else {
+        player.style.removeProperty('--fur');
+        player.style.removeProperty('--mark');
+    }
 
     if (game.currentArea === 'fighting') {
         addExtraNpc('Reedpaw', 760, groundY, () => setMessage('Reedpaw (Tom)', rotatingText('Reedpaw', ['Watch this battle move!', 'Fernpaw says I kick too much dust.', 'One day I will guard the border.'])));
@@ -607,7 +734,7 @@ function addDeadNpc(cat, x, bottom) {
 const starclanLines = {
     Silverstar: [
         'Silverstar tilts a starry head. "I led Moonclan when these stones were younger."',
-        '"A leader\'s strength is patience, Brambleclaw. You learned it well."',
+        '"A leader\'s strength is patience, {WARRIOR}. You learned it well."',
         '"Watch the apprentices. Even Starclan still teaches them in dreams."',
         '"The stars hold every name we ever called. None of you are forgotten."'
     ],
@@ -624,7 +751,7 @@ const starclanLines = {
         '"I died too soon, but Starclan made me whole again."'
     ],
     Littlekit: [
-        'Littlekit pounces on a dust-mote of starlight. "Play with me, Brambleclaw!"',
+        'Littlekit pounces on a dust-mote of starlight. "Play with me, {WARRIOR}!"',
         'Littlekit yawns. "Starclan is a soft nest with no claws."',
         'Littlekit tilts their head. "Why are the living cats sad? It is so warm here."',
         'Littlekit nudges your paw. "I have a thousand mossballs now."'
@@ -637,7 +764,7 @@ const starclanLines = {
     ],
     Stoneclaw: [
         '"My bones lie under these river stones. I keep watch even now."',
-        '"A deputy carries the clan in their chest, Brambleclaw. You did well."',
+        '"A deputy carries the clan in their chest, {WARRIOR}. You did well."',
         '"Borders shift, but pride should not."',
         '"I would have liked to meet your mate. They sound brave."'
     ],
@@ -660,7 +787,7 @@ const starclanLines = {
         '"Listen to the moss. It speaks softer than the wind, but truer."'
     ],
     Whiskerstar: [
-        '"My old camp still feels close, Brambleclaw. Thank you for naming the cat that took my life."',
+        '"My old camp still feels close, {WARRIOR}. Thank you for naming the cat that took my life."',
         '"Lead with patience. That is the only lesson worth handing on."',
         '"Tell Ashstar her lives are well-earned."',
         '"I am at peace, even with blood on the brambles."'
@@ -678,7 +805,8 @@ function starclanLine(name) {
     }
     const lines = starclanLines[name];
     if (lines) {
-        return rotatingText(name, lines);
+        const W = warriorName();
+        return rotatingText(name, lines.map((line) => line.replaceAll('{WARRIOR}', W)));
     }
     return rotatingText(name, [
         'The stars under their paws ripple like water.',
@@ -688,14 +816,15 @@ function starclanLine(name) {
 }
 
 function ghostFeelingLine(name) {
+    const W = warriorName();
     return rotatingText(`ghost-${name}`, [
         `${name} shivers. "Did you feel cold stars brush past?"`,
         `${name} looks through you. "Something unseen is standing here."`,
         `${name} lowers their ears. "Starclan feels close today."`,
-        `${name} stares at empty air. "Maybe it is Brambleclaw, watching over us."`,
+        `${name} stares at empty air. "Maybe it is ${W}, watching over us."`,
         `${name} flicks their tail. "The wind smells of moss and old ash."`,
         `${name} pauses mid-step. "I felt a paw on my shoulder. There is nothing there."`,
-        `${name} murmurs, "Brambleclaw, if you can hear me, the clan still misses you."`,
+        `${name} murmurs, "${W}, if you can hear me, the clan still misses you."`,
         `${name} blinks slowly. "I dreamed of stars last night. They knew my name."`,
         `${name} touches the ground with their nose. "The earth feels colder where you stand."`
     ]);
@@ -789,7 +918,7 @@ function speak(cat) {
             return;
         }
         if (game.deputyDay === game.day && cat.name !== 'Ashstar') {
-            setMessage(`${cat.name}, ${cat.rank} (${cat.gender})`, `Wow, you are deputy now? Congratulations, Brambleclaw. Moonclan trusts your paws.`);
+            setMessage(`${cat.name}, ${cat.rank} (${cat.gender})`, `Wow, you are deputy now? Congratulations, ${warriorName()}. Moonclan trusts your paws.`);
             return;
         }
         const trust = ` Trust ${trustFor(cat.name)}/3.`;
@@ -854,7 +983,7 @@ function accuse(name) {
     accusePanel.innerHTML = '<button id="sleepBtn" type="button">Sleep in Warrior Den</button>';
     document.getElementById('sleepBtn').addEventListener('click', sleepInWarriorDen);
     renderAll();
-    setMessage('Whiskerstar', `Good job, Brambleclaw. ${firstMurderer} is cast out. From this day forward, you are a warrior.`);
+    setMessage('Whiskerstar', `Good job, ${warriorName()}. ${firstMurderer} is cast out. From this day forward, you are a warrior.`);
 }
 
 function endInvestigationDay() {
@@ -936,8 +1065,8 @@ function renderPlayerKitsInDen(layer) {
         node.className = `cat npc den-cat player-kit ${game.kitStage}`;
         node.style.left = `${420 + index * 110}px`;
         node.style.bottom = game.kitStage === 'newborn' ? '18px' : '28px';
-        node.style.setProperty('--fur', ['#b77b4f', '#d9c39a', '#6d5440'][index]);
-        node.style.setProperty('--mark', ['#f1d2a2', '#8b6a44', '#d6b073'][index]);
+        node.style.setProperty('--fur', [playerFur(), '#d9c39a', '#6d5440'][index]);
+        node.style.setProperty('--mark', [playerMark(), '#8b6a44', '#d6b073'][index]);
         node.innerHTML = `${catMarkup()}<span class="nameplate">${label}</span>`;
         node.addEventListener('click', () => {
             if (game.ghostMode) {
@@ -978,7 +1107,7 @@ function talkInsideDen(name) {
 function exitDen() {
     playerState.insideDen = false;
     denInterior.hidden = true;
-    setMessage(game.rank === 'Apprentice' ? 'Bramblepaw' : 'Brambleclaw', 'Back in the clearing.');
+    setMessage(playerName(), 'Back in the clearing.');
 }
 
 function visitArea(area) {
@@ -1395,7 +1524,7 @@ function updatePatrolAndApprenticeTimeline() {
     } else if (game.day >= game.abandonedKit.foundDay + 2 && game.abandonedKit.stage === 'kit') {
         game.abandonedKit.stage = 'apprentice';
         addNote('Riverkit became Riverpaw, and you are their mentor.');
-        setMessage('Ashstar', 'Let all cats gather beneath Highrock. Riverkit, from this day you are Riverpaw. Brambleclaw will be your mentor and teach you to hunt, fight, and patrol.');
+        setMessage('Ashstar', `Let all cats gather beneath Highrock. Riverkit, from this day you are Riverpaw. ${warriorName()} will be your mentor and teach you to hunt, fight, and patrol.`);
         return true;
     }
     return false;
@@ -1453,15 +1582,17 @@ function updateKitsTimeline() {
     let meetingText = '';
     if (game.expectingKits && game.kitsDueDay && game.day >= game.kitsDueDay) {
         const mate = cast.find((cat) => cat.name === game.mate);
-        const furMix = mixColors('#b77b4f', mate?.fur || '#c55f45');
-        const markMix = mixColors('#f1d2a2', mate?.mark || '#f0b172');
+        const playerColor = playerFur();
+        const playerMarkColor = playerMark();
+        const furMix = mixColors(playerColor, mate?.fur || '#c55f45');
+        const markMix = mixColors(playerMarkColor, mate?.mark || '#f0b172');
         const names = ['Storm', 'Dew', 'Bright', 'Leaf', 'Rain', 'Spark', 'Minnow', 'Briar', 'Light'];
         const kitCount = 1 + Math.floor(Math.random() * 4);
         const furPatterns = [
             { fur: furMix, mark: markMix },
-            { fur: mate?.fur || '#d9c39a', mark: '#f1d2a2' },
-            { fur: '#b77b4f', mark: mate?.mark || '#f0b172' },
-            { fur: mixColors('#b77b4f', '#d9c39a'), mark: mixColors(markMix, mate?.mark || '#f0b172') }
+            { fur: mate?.fur || '#d9c39a', mark: playerMarkColor },
+            { fur: playerColor, mark: mate?.mark || '#f0b172' },
+            { fur: mixColors(playerColor, '#d9c39a'), mark: mixColors(markMix, mate?.mark || '#f0b172') }
         ];
         for (let index = 0; index < kitCount; index += 1) {
             game.playerKits.push({
@@ -1557,7 +1688,7 @@ function gatherClanAfterMurder() {
     accusePanel.innerHTML = '<button id="moonpoolShortcut" type="button">Go to Moonpool</button>';
     document.getElementById('moonpoolShortcut').addEventListener('click', () => visitArea('moonpool'));
     renderAll();
-    setMessage('Ashstar', `Whiskerstar is dead. ${firstMurderer} came back. I name you deputy, Brambleclaw. The clan will congratulate you today; tomorrow, your patrol duties begin.`);
+    setMessage('Ashstar', `Whiskerstar is dead. ${firstMurderer} came back. I name you deputy, ${warriorName()}. The clan will congratulate you today; tomorrow, your patrol duties begin.`);
 }
 
 function moonpoolCeremony() {
@@ -1589,7 +1720,7 @@ function movePlayer() {
 
     if (touchesRiver(playerState.x)) {
         playerState.x = previousX + (playerState.x > previousX ? -42 : 42);
-        setMessage('Brambleclaw', 'I can’t swim! The river pushes you back.');
+        setMessage(warriorName(), 'I can’t swim! The river pushes you back.');
     }
 
     playerState.velocityY -= 0.75;
@@ -1653,6 +1784,9 @@ playBtn.addEventListener('click', () => {
     startGame();
 });
 instructionsBtn.addEventListener('click', () => instructionsDialog.showModal());
+changeNameBtn.addEventListener('click', promptForPrefix);
+buildPeltPicker();
+updateTitlePreview();
 restartBtn.addEventListener('click', () => resetGame(true));
 
 mobileControls.querySelectorAll('.mobile-key').forEach((button) => {
