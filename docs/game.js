@@ -1017,7 +1017,7 @@ function endInvestigationDay() {
     bumpDayTimer();
 }
 
-const AUTO_DAY_MS = 7 * 60 * 1000;
+const AUTO_DAY_MS = 5.6 * 60 * 1000;
 
 function bumpDayTimer() {
     if (!game) {
