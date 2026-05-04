@@ -73,7 +73,7 @@ const firstLines = {
     Ashfall: ['I counted the nests. Ravenstripe slipped out after the camp went quiet.', 'Find what clung to his pelt. The forest keeps receipts.'],
     Mistclaw: ['Willowfur brushed past me earlier. Later, the clearing smelled sharp with pine resin.', 'The hunting grounds are good for clearing fear from your chest.'],
     Ravenstripe: ['Murder? I was asleep. No, I did not leave camp. Why are you staring at my ear?', 'Willowfur made enemies. Maybe ask Brindleleaf. Stop circling me.'],
-    Brindleleaf: ['The elder den brambles caught a tuft of black fur.', 'Warrior life means watching shadows even after the clan starts purring again.'],
+    Brindleleaf: ['The elder den brambles caught a tuft of torn fur.', 'Warrior life means watching shadows even after the clan starts purring again.'],
     Cloudspark: ['There was a splash by the stream path. Then pawsteps, heavy and fast.', 'The borders are quiet today, but quiet can still hide claws.'],
     Pinefoot: ['Ravenstripe and I patched the pine-barrier. Resin stuck to his paws.', 'The fighting grounds are open now. Reedpaw and Fernpaw are always training.'],
     Sorreltail: ['Willowfur found missing prey under Ravenstripe’s moss. She was going to tell Whiskerstar at dawn.', 'A fresh mouse can say more than a moon of boasting.']
@@ -230,6 +230,10 @@ function chooseMurderer() {
 function applyMysteryClues() {
     const culprit = firstMurderer;
     const culpritCat = cast.find((cat) => cat.name === culprit);
+    const furEvidence = document.querySelector('.evidence.fur');
+    if (furEvidence && culpritCat) {
+        furEvidence.style.setProperty('--murderer-fur', culpritCat.fur);
+    }
     cast.forEach((cat) => {
         if (cat.name === 'Whiskerstar') {
             cat.clue = `Whiskerstar heard Willowfur threaten to expose ${culprit} before dawn.`;
@@ -722,7 +726,7 @@ function inspectEvidence(label) {
     const notesByEvidence = {
         'Pine resin': `Golden pine resin beside Willowfur matches the sticky scent on ${firstMurderer}'s paws.`,
         'Muddy pawprints': `Muddy pawprints lead from the stream path toward ${firstMurderer}'s nest.`,
-        'Torn dark fur': `A torn tuft matching ${firstMurderer}'s pelt clings to elder-den brambles.`
+        'Torn fur': `A torn tuft matching ${firstMurderer}'s pelt clings to elder-den brambles.`
     };
     addNote(notesByEvidence[label]);
     setMessage('Evidence', notesByEvidence[label]);

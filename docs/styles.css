@@ -550,7 +550,7 @@ p {
     width: 44px;
     height: 12px;
     border-radius: 60% 30% 60% 30%;
-    background: #151515;
+    background: var(--murderer-fur, #151515);
 }
 
 .cat {
