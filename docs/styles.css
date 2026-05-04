@@ -806,10 +806,10 @@ p {
 
 .fur-tuft {
     position: absolute;
-    left: 2960px;
+    left: 2980px;
     bottom: 100px;
-    width: 44px;
-    height: 14px;
+    width: 28px;
+    height: 9px;
     border-radius: 60% 30% 60% 30%;
     border: 0;
     padding: 0;
