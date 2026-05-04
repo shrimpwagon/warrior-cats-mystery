@@ -192,7 +192,7 @@ const baseAlibis = {
 
 function alibiFor(name) {
     if (name === firstMurderer) {
-        return `${name} claims they were asleep, but their nest was disturbed and their pelt smelled of pine resin.`;
+        return `${name} was seen near Willowfur's nest before moonhigh. They will not say why they were there.`;
     }
     return baseAlibis[name] || `${name} was asleep through the night.`;
 }
