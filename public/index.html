@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Moonclan Mystery</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main class="game-shell">
+        <section class="topbar" aria-label="Mystery status">
+            <div>
+                <h1>Moonclan Mystery</h1>
+                <p id="chapter">A cold dawn. Willowfur lies silent beside the elder den.</p>
+            </div>
+            <div class="status-pills">
+                <span id="dayCount">Day 1/5</span>
+                <span id="rankBadge">Apprentice</span>
+                <span id="preyCount">Prey 0</span>
+                <span id="clueCount">Clues 0/6</span>
+                <button id="notebookBtn" type="button">Notebook</button>
+                <button id="restartBtn" type="button">Restart</button>
+            </div>
+        </section>
+
+        <section id="viewport" class="viewport" aria-label="Moonclan forest camp">
+            <div id="world" class="world">
+                <div class="parallax far"></div>
+                <div class="parallax near"></div>
+                <div class="ground"></div>
+                <div id="areaLayer" class="area-layer"></div>
+                <div class="highrock"><span>Highrock</span></div>
+
+                <button class="den leader-den" type="button" data-den="Leader Den"><span>Leader Den</span></button>
+                <button class="den nursery" type="button" data-den="Nursery"><span>Nursery</span></button>
+                <button class="den warriors-den" type="button" data-den="Warrior Den"><span>Warrior Den</span></button>
+                <button class="den elder-den" type="button" data-den="Elder Den"><span>Elder Den</span></button>
+                <button class="den medicine-den" type="button" data-den="Medicine Den"><span>Medicine Den</span></button>
+
+                <div class="kit kit-one" aria-hidden="true"></div>
+                <div class="kit kit-two" aria-hidden="true"></div>
+                <div class="kit kit-three" aria-hidden="true"></div>
+
+                <div class="evidence resin" data-evidence="Pine resin"></div>
+                <div class="evidence prints" data-evidence="Muddy pawprints"></div>
+                <div class="evidence fur" data-evidence="Torn dark fur"></div>
+
+                <div id="npcLayer"></div>
+                <div id="player" class="cat player-cat" aria-label="Main cat"></div>
+            </div>
+            <div id="denInterior" class="den-interior" hidden>
+                <div class="interior-scene">
+                    <button id="leaveDen" type="button">Leave Den</button>
+                    <h2 id="denTitle">Den</h2>
+                    <p id="denText"></p>
+                    <div id="denActions" class="den-actions"></div>
+                    <div id="interiorDecor"></div>
+                </div>
+            </div>
+            <div id="huntScene" class="hunt-scene" hidden>
+                <div class="hunt-track">
+                    <div class="prey-animal"></div>
+                    <div class="hunt-cat cat player-cat"></div>
+                </div>
+            </div>
+            <div id="murderCutscene" class="murder-cutscene" hidden>
+                <div class="cutscene-track">
+                    <div class="blood-mark"></div>
+                    <div class="runner-cat cat"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="story-panel" aria-live="polite">
+            <div>
+                <h2 id="speaker">Bramblepaw</h2>
+                <p id="dialogue">The forest is holding its breath. Question every cat, inspect the camp, then name Willowfur's murderer.</p>
+            </div>
+            <div id="accusePanel" class="accuse-panel"></div>
+        </section>
+
+        <dialog id="notebook">
+            <form method="dialog">
+                <header>
+                    <h2>Notebook</h2>
+                    <button type="submit">Close</button>
+                </header>
+                <ul id="notes"></ul>
+            </form>
+        </dialog>
+        <div id="playOverlay" class="play-overlay">
+            <div>
+                <div class="title-stars" aria-hidden="true"></div>
+                <h2><span>Moonclan Mystery</span><small>The Game</small></h2>
+                <p>Find the murderer before the trail goes cold, then live as a warrior of Moonclan.</p>
+                <div class="control-choice" aria-label="Choose controls">
+                    <button id="pcModeBtn" class="selected" type="button">PC</button>
+                    <button id="mobileModeBtn" type="button">Mobile</button>
+                </div>
+                <button id="playBtn" type="button">Start</button>
+            </div>
+        </div>
+        <div id="mobileControls" class="mobile-controls" hidden aria-label="Mobile movement controls">
+            <button class="mobile-key up" type="button" data-key="ArrowUp">↑</button>
+            <button class="mobile-key left" type="button" data-key="ArrowLeft">←</button>
+            <button class="mobile-key down" type="button" data-key="ArrowDown">↓</button>
+            <button class="mobile-key right" type="button" data-key="ArrowRight">→</button>
+        </div>
+    </main>
+    <script src="game.js"></script>
+</body>
+</html>
