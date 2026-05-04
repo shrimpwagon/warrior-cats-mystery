@@ -142,40 +142,27 @@ const genderCycle = ['tom', 'she-cat', 'non-binary'];
 const genderLabels = { tom: 'Tom', 'she-cat': 'She-cat', 'non-binary': 'Non-binary' };
 let currentGender = 'tom';
 
-const titleHistory = [];
-
-function snapshotTitleState() {
-    titleHistory.push({ prefix: currentPrefix, furIndex: currentFurIndex, gender: currentGender });
-    if (titleHistory.length > 20) {
-        titleHistory.shift();
-    }
-}
-
 function undoTitleChange() {
-    if (titleHistory.length === 0) {
-        return;
-    }
-    const last = titleHistory.pop();
-    currentPrefix = last.prefix;
-    currentFurIndex = last.furIndex;
-    currentGender = last.gender;
+    currentPrefix = 'Bramble';
+    currentFurIndex = 0;
+    currentGender = 'tom';
+    setControlMode('pc');
     if (game) {
         game.playerPrefix = currentPrefix;
         game.playerFurIndex = currentFurIndex;
-        game.playerFur = pelts[currentFurIndex].fur;
-        game.playerMark = pelts[currentFurIndex].mark;
+        game.playerFur = pelts[0].fur;
+        game.playerMark = pelts[0].mark;
         game.gender = currentGender;
     }
     if (peltPicker) {
         peltPicker.querySelectorAll('.pelt-swatch').forEach((btn, idx) => {
-            btn.classList.toggle('selected', idx === currentFurIndex);
+            btn.classList.toggle('selected', idx === 0);
         });
     }
     updateTitlePreview();
 }
 
 function cycleGender() {
-    snapshotTitleState();
     const next = (genderCycle.indexOf(currentGender) + 1) % genderCycle.length;
     currentGender = genderCycle[next];
     if (game) {
@@ -250,16 +237,9 @@ function updateTitlePreview() {
     if (genderBtn) {
         genderBtn.textContent = genderLabels[currentGender];
     }
-    const undoBtn = document.getElementById('undoTitleBtn');
-    if (undoBtn) {
-        undoBtn.disabled = titleHistory.length === 0;
-    }
 }
 
 function selectPelt(index) {
-    if (index !== currentFurIndex) {
-        snapshotTitleState();
-    }
     currentFurIndex = index;
     if (game) {
         const pelt = pelts[index];
@@ -304,11 +284,7 @@ function promptForPrefix() {
     if (raw === null) {
         return;
     }
-    const next = sanitizePrefix(raw);
-    if (next !== currentPrefix) {
-        snapshotTitleState();
-    }
-    currentPrefix = next;
+    currentPrefix = sanitizePrefix(raw);
     if (game) {
         game.playerPrefix = currentPrefix;
     }
