@@ -69,6 +69,9 @@ const extraCats = {
     Pebblekit: { rank: 'Kit', gender: 'Tom', fur: '#c99762', mark: '#f5d095' },
     Mosskit: { rank: 'Kit', gender: 'She-cat', fur: '#ded8c4', mark: '#857d67' },
     Tinykit: { rank: 'Kit', gender: 'She-cat', fur: '#514132', mark: '#b8a087' },
+    Snowkit: { rank: 'Kit', gender: 'She-cat', fur: '#f0eee8', mark: '#cfd6dc' },
+    Birchstep: { rank: 'Warrior', gender: 'Tom', fur: '#9b8260', mark: '#574330' },
+    Hollyfoot: { rank: 'Warrior', gender: 'She-cat', fur: '#3e3a36', mark: '#7d8b7e' },
     Reedpaw: { rank: 'Apprentice', gender: 'Tom', fur: '#7c5a38', mark: '#d6b073' },
     Fernpaw: { rank: 'Apprentice', gender: 'She-cat', fur: '#bbb5a2', mark: '#776854' },
     Nettleclaw: { rank: 'Sunclan Warrior', gender: 'Tom', fur: '#d09b42', mark: '#5a3920' },
@@ -90,9 +93,9 @@ const firstLines = {
 };
 
 const denDetails = {
-    'Leader Den': ['A quiet stone-scented den tucked behind Highrock.', '<div class="nest"></div><div class="nest"></div>', ['Whiskerstar']],
-    Nursery: ['Warm moss, soft bracken, and curious kits. They tumble over each other and beg for stories.', '<div class="nest"></div><div class="inside-kit one"></div><div class="inside-kit two"></div><div class="inside-kit three"></div>', ['Pebblekit', 'Mosskit', 'Tinykit']],
-    'Warrior Den': ['Crowded nests ring the walls. Once you are a warrior, you can sleep here to advance time.', '<div class="nest"></div><div class="nest"></div><div class="nest"></div>', ['Brindleleaf', 'Cloudspark', 'Sorreltail']],
+    'Leader Den': ['A quiet stone-scented den tucked behind Highrock. Empty for now.', '<div class="nest"></div><div class="nest"></div>', []],
+    Nursery: ['Warm moss and soft bracken. A small kit is curled tight, fast asleep.', '<div class="nest"></div><div class="inside-kit one sleeping"></div>', ['Snowkit']],
+    'Warrior Den': ['Crowded nests ring the walls. Once you are a warrior, you can sleep here to advance time.', '<div class="nest"></div><div class="nest"></div><div class="nest"></div>', ['Birchstep', 'Hollyfoot']],
     'Elder Den': ['Dry leaves and old stories fill the air.', '<div class="nest"></div><div class="nest"></div>', ['Oakwhisker']],
     'Medicine Den': ['A leafy den woven from ferns, ivy, and sweet-smelling herbs.', '<div class="leaf-pile"></div><div class="herb-bundle"></div>', ['Leafsong']]
 };
@@ -1273,20 +1276,37 @@ function talkInsideDen(name) {
         setMessage(name, ghostFeelingLine(name));
         return;
     }
-    const lines = {
-        Pebblekit: 'Pebblekit squeaks, "When I am big, I am going to catch a fox by the tail!"',
-        Mosskit: 'Mosskit whispers, "I saw a black cat near the thorns once."',
-        Tinykit: 'Tinykit purrs so loudly the moss shakes.',
-        Brindleleaf: 'Brindleleaf says, "Warriors sleep lightly. Trouble likes the dark."',
-        Cloudspark: 'Cloudspark says, "The training grounds are good for clearing your head."',
-        Sorreltail: game.preyInMouth ? 'Sorreltail blinks warmly at the prey in your mouth.' : 'Sorreltail says, "A fresh mouse can say more than boasting."',
-        Oakwhisker: 'Oakwhisker rasps, "An exiled cat can still find a path back through anger."',
-        Leafsong: 'Leafsong sorts herbs. "The Moonpool will show what the living miss."',
-        Whiskerstar: 'Whiskerstar rests quietly. "One day, choose your deputy with care."'
+    const denLines = {
+        Snowkit: [
+            'Snowkit is curled tight in the moss, breathing slow and steady.',
+            'Their tiny paws twitch as they chase a mouse in their dream.',
+            'A faint squeak escapes them, then silence again.'
+        ],
+        Birchstep: [
+            'Birchstep stretches and yawns. "Long patrol earlier. The wind kept shifting."',
+            'Birchstep flicks an ear. "The new apprentices have quick paws. Watch them."',
+            'Birchstep murmurs, "I caught the scent of fox by the old pine. Stay alert."'
+        ],
+        Hollyfoot: [
+            'Hollyfoot grooms her dark pelt with sharp tongue strokes. "A clean coat is a quiet hunter."',
+            'Hollyfoot nods to you. "I prefer fighting at dusk. The shadows do half the work."',
+            'Hollyfoot watches the den entrance through one half-open eye.'
+        ],
+        Oakwhisker: [
+            'Oakwhisker rasps, "An exiled cat can still find a path back through anger."',
+            'Oakwhisker chuckles. "I remember when these stones were warmer in summer. The forest forgets nothing."',
+            'Oakwhisker shifts in the leaves. "Listen more than you speak, young one. Stories live in old bones."'
+        ],
+        Leafsong: [
+            'Leafsong sorts herbs. "The Moonpool will show what the living miss."',
+            'Leafsong holds out a sprig of catmint. "If a cough comes, find me before sunset."',
+            'Leafsong studies you a moment. "Your spirit feels strong today. Hold onto that."'
+        ]
     };
     const fullCat = cast.find((cat) => cat.name === name) || extraCats[name];
     const gender = fullCat?.gender ? ` (${fullCat.gender})` : '';
-    setMessage(`${name}${gender}`, rotatingText(name, [lines[name] || 'They twitch their whiskers in greeting.', 'Today the den smells of moss and warm fur.', 'They blink slowly and listen.']));
+    const lines = denLines[name] || [`${name} twitches their whiskers in greeting.`];
+    setMessage(`${name}${gender}`, rotatingText(`den-${name}`, lines));
 }
 
 function exitDen() {

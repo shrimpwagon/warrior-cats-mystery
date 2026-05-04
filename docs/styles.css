@@ -999,6 +999,32 @@ p {
 .inside-kit.two { left: 248px; --kit-fur: #ded8c4; transform: scale(0.9); }
 .inside-kit.three { left: 330px; --kit-fur: #514132; transform: scale(0.78); }
 
+.inside-kit.sleeping {
+    --kit-fur: #f0eee8;
+    animation: kitBreathe 3.6s ease-in-out infinite;
+}
+
+.inside-kit.sleeping::after {
+    content: "z";
+    position: absolute;
+    top: -16px;
+    right: -8px;
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.95rem;
+    font-style: italic;
+    animation: zFloat 3.6s ease-in-out infinite;
+}
+
+@keyframes kitBreathe {
+    0%, 100% { transform: scale(0.92); }
+    50% { transform: scale(0.97); }
+}
+
+@keyframes zFloat {
+    0%, 100% { opacity: 0.25; transform: translateY(0); }
+    50% { opacity: 0.85; transform: translateY(-6px); }
+}
+
 .ttt-board {
     display: grid;
     grid-template-columns: repeat(3, 48px);
