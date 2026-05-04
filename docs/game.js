@@ -38,6 +38,7 @@ const peltPicker = document.getElementById('peltPicker');
 const changeNameBtn = document.getElementById('changeNameBtn');
 const genderBtn = document.getElementById('genderBtn');
 const furBush = document.getElementById('furBush');
+const furTuft = document.getElementById('furTuft');
 const suspectBoard = document.getElementById('suspectBoard');
 
 const worldWidth = 3200;
@@ -60,7 +61,7 @@ const baseCast = [
     ['Brindleleaf', 'Warrior', 'Tom', 2060, 90, '#a76d3f', '#4d2d1c', 'Brindleleaf saw dark fur snagged on the elder den brambles.'],
     ['Cloudspark', 'Warrior', 'She-cat', 2350, 90, '#f0eee1', '#c4b892', 'Cloudspark heard a splash from the muddy stream path after the attack.'],
     ['Pinefoot', 'Warrior', 'Tom', 2590, 90, '#6a4d34', '#263d23', 'Pinefoot says Ravenstripe handled pine resin while repairing the camp barrier.'],
-    ['Sorreltail', 'Warrior', 'She-cat', 2950, 90, '#c55f45', '#f0b172', 'Sorreltail says Willowfur discovered stolen prey hidden under Ravenstripe’s nest.']
+    ['Sorreltail', 'Warrior', 'She-cat', 760, 90, '#c55f45', '#f0b172', 'Sorreltail says Willowfur discovered stolen prey hidden under Ravenstripe’s nest.']
 ];
 
 const extraCats = {
@@ -141,7 +142,40 @@ const genderCycle = ['tom', 'she-cat', 'non-binary'];
 const genderLabels = { tom: 'Tom', 'she-cat': 'She-cat', 'non-binary': 'Non-binary' };
 let currentGender = 'tom';
 
+const titleHistory = [];
+
+function snapshotTitleState() {
+    titleHistory.push({ prefix: currentPrefix, furIndex: currentFurIndex, gender: currentGender });
+    if (titleHistory.length > 20) {
+        titleHistory.shift();
+    }
+}
+
+function undoTitleChange() {
+    if (titleHistory.length === 0) {
+        return;
+    }
+    const last = titleHistory.pop();
+    currentPrefix = last.prefix;
+    currentFurIndex = last.furIndex;
+    currentGender = last.gender;
+    if (game) {
+        game.playerPrefix = currentPrefix;
+        game.playerFurIndex = currentFurIndex;
+        game.playerFur = pelts[currentFurIndex].fur;
+        game.playerMark = pelts[currentFurIndex].mark;
+        game.gender = currentGender;
+    }
+    if (peltPicker) {
+        peltPicker.querySelectorAll('.pelt-swatch').forEach((btn, idx) => {
+            btn.classList.toggle('selected', idx === currentFurIndex);
+        });
+    }
+    updateTitlePreview();
+}
+
 function cycleGender() {
+    snapshotTitleState();
     const next = (genderCycle.indexOf(currentGender) + 1) % genderCycle.length;
     currentGender = genderCycle[next];
     if (game) {
@@ -219,6 +253,9 @@ function updateTitlePreview() {
 }
 
 function selectPelt(index) {
+    if (index !== currentFurIndex) {
+        snapshotTitleState();
+    }
     currentFurIndex = index;
     if (game) {
         const pelt = pelts[index];
@@ -263,7 +300,11 @@ function promptForPrefix() {
     if (raw === null) {
         return;
     }
-    currentPrefix = sanitizePrefix(raw);
+    const next = sanitizePrefix(raw);
+    if (next !== currentPrefix) {
+        snapshotTitleState();
+    }
+    currentPrefix = next;
     if (game) {
         game.playerPrefix = currentPrefix;
     }
@@ -369,7 +410,8 @@ function resetGame(showOverlay = true) {
         playerMark: pelts[currentFurIndex].mark,
         suspectStatus: {},
         alibiUsed: false,
-        furBushFound: false
+        furBushFound: false,
+        kittypetMet: false
     };
     playerState.x = 120;
     playerState.y = 0;
@@ -384,6 +426,9 @@ function resetGame(showOverlay = true) {
     accusePanel.innerHTML = '';
     if (furBush) {
         furBush.hidden = false;
+    }
+    if (furTuft) {
+        furTuft.hidden = true;
     }
     keys.clear();
     updateControlsVisibility();
@@ -479,9 +524,9 @@ function murdererCat() {
 }
 
 function updateHud() {
-    const clueTotal = Math.min(3, foundClues.size);
+    const clueTotal = Math.min(2, foundClues.size);
     const mateTrust = game.mate ? trustFor(game.mate) : Math.max(0, ...Object.values(game.trust));
-    clueCount.textContent = game.firstSolved ? `Trust ${mateTrust}/3${game.rose ? ' Rose' : ''}` : `Clues ${clueTotal}/3`;
+    clueCount.textContent = game.firstSolved ? `Trust ${mateTrust}/3${game.rose ? ' Rose' : ''}` : `Clues ${clueTotal}/2`;
     dayCount.textContent = game.firstSolved ? `Day ${game.day}` : `Day ${game.day}/${game.firstLimit}`;
     rankBadge.textContent = game.rank;
     preyCount.textContent = `Prey ${game.prey}${game.preyInMouth ? ' (in mouth)' : ''}`;
@@ -520,8 +565,13 @@ function setScene(area) {
     renderAll();
 }
 
+function isRaining() {
+    return game?.started && game.day > 0 && game.day % 17 === 0;
+}
+
 function renderAll() {
     world.classList.toggle('mystery-solved', Boolean(game.firstSolved));
+    world.classList.toggle('raining', isRaining());
     renderCats();
     renderAreas();
     updateHud();
@@ -551,17 +601,59 @@ function renderCats() {
     }
 
     if (game.currentArea === 'gathering') {
-        addNpc('Ashstar', 'Leader', 900, groundY + 160, '#777a78', '#d4d4c8', () => setMessage('Ashstar', 'Moonclan has faced danger and stands together.'));
-        addNpc('Sunstar', 'Leader', 1070, groundY + 160, '#d09b42', '#5a3920', () => setMessage('Sunstar', 'Sunclan reports strong patrols and full bellies.'));
-        addNpc('Dawnstar', 'Leader', 1240, groundY + 160, '#b7a369', '#f2d597', () => setMessage('Dawnstar', 'Dawnclan brings news of dry leaves and quick prey.'));
-        if (shouldShowLivingCat('Cloudspark')) {
-            addNpc('Cloudspark', 'Warrior', 740, groundY, '#f0eee1', '#c4b892', () => setMessage('Cloudspark', 'So many clan scents in one clearing makes my whiskers twitch.'));
+        const branchY = groundY + 200;
+        const leaderLines = {
+            Ashstar: [
+                'Moonclan has faced danger and stands together.',
+                'Our apprentices grow stronger with every patrol.',
+                'Greenleaf prey runs full. We have shared what we can.',
+                'Starclan has spoken of trials ahead. We will be ready.'
+            ],
+            Sunstar: [
+                'Sunclan reports strong patrols and full bellies.',
+                'A fox crossed our border but we drove it off.',
+                'Our medicine cat warns of fever in the queens.',
+                'We met an old kittypet near the twoleg fence; we left them be.'
+            ],
+            Dawnstar: [
+                'Dawnclan brings news of dry leaves and quick prey.',
+                'Our river is shallower this moon. The fish run early.',
+                'We mourn an elder who joined Starclan two sunrises ago.',
+                'The dawn winds carry rain. Be ready, all of you.'
+            ]
+        };
+        const gatheringNum = game.lastGatheringDay || 0;
+        const pickLine = (name) => {
+            const lines = leaderLines[name];
+            return lines[gatheringNum % lines.length];
+        };
+        for (let i = 0; i < 3; i += 1) {
+            const branch = document.createElement('div');
+            branch.className = 'gathering-branch';
+            branch.style.left = `${860 + i * 170}px`;
+            branch.style.bottom = `${branchY - 16}px`;
+            npcLayer.appendChild(branch);
         }
-        if (shouldShowLivingCat('Mistclaw')) {
-            addNpc('Mistclaw', 'Warrior', 1460, groundY, '#8fa0a6', '#eef6f5', () => setMessage('Mistclaw', 'Gatherings are peaceful, but every warrior still watches.'));
-        }
-        addExtraNpc('Nettleclaw', 1640, groundY, () => setMessage('Nettleclaw', 'Tonight we listen. Tomorrow the border matters again.'));
-        addExtraNpc('Dawnpelt', 1840, groundY, () => setMessage('Dawnpelt', 'Dawnclan cats sit beneath the great tree.'));
+        addNpc('Ashstar', 'Leader', 900, branchY, '#777a78', '#d4d4c8', () => setMessage('Ashstar', pickLine('Ashstar')));
+        addNpc('Sunstar', 'Leader', 1070, branchY, '#d09b42', '#5a3920', () => setMessage('Sunstar', pickLine('Sunstar')));
+        addNpc('Dawnstar', 'Leader', 1240, branchY, '#b7a369', '#f2d597', () => setMessage('Dawnstar', pickLine('Dawnstar')));
+
+        const moonclanPool = ['Cloudspark', 'Mistclaw', 'Brindleleaf', 'Sorreltail', 'Pinefoot'].filter((n) => shouldShowLivingCat(n));
+        const sunclanPool = ['Nettleclaw', 'Dawnpelt', 'Russetfang'];
+        const moonclanRotation = moonclanPool[gatheringNum % moonclanPool.length];
+        const moonclanRotation2 = moonclanPool[(gatheringNum + 2) % moonclanPool.length];
+        const sunclanRotation = sunclanPool[gatheringNum % sunclanPool.length];
+        const sunclanRotation2 = sunclanPool[(gatheringNum + 1) % sunclanPool.length];
+        const moonclanGuests = [...new Set([moonclanRotation, moonclanRotation2].filter(Boolean))];
+        const sunclanGuests = [...new Set([sunclanRotation, sunclanRotation2])];
+        moonclanGuests.forEach((name, i) => {
+            const cat = cast.find((c) => c.name === name);
+            if (!cat) return;
+            addNpc(name, cat.rank, 700 + i * 220, groundY, cat.fur, cat.mark, () => setMessage(name, `${name} murmurs about the night sky and watches the leaders.`));
+        });
+        sunclanGuests.forEach((name, i) => {
+            addExtraNpc(name, 1500 + i * 200, groundY, () => setMessage(name, `${name} keeps their tail close and listens.`));
+        });
         renderGhostCats();
         return;
     }
@@ -581,6 +673,39 @@ function renderCats() {
         addExtraNpc('Nettleclaw', 760, groundY, () => setMessage('Nettleclaw (Tom)', 'Get out of Sunclan territory before I call the patrol.'));
         addExtraNpc('Dawnpelt', 980, groundY, () => setMessage('Dawnpelt (She-cat)', 'Moonclan paws do not belong past the river.'));
         addExtraNpc('Russetfang', 1210, groundY, () => setMessage('Russetfang (Tom)', 'Leave. This border is not yours.'));
+
+        const fence = document.createElement('div');
+        fence.className = 'twoleg-fence';
+        fence.style.left = '1500px';
+        fence.style.bottom = `${groundY}px`;
+        npcLayer.appendChild(fence);
+
+        const kittypetNode = document.createElement('button');
+        kittypetNode.type = 'button';
+        kittypetNode.className = 'cat npc warrior kittypet';
+        kittypetNode.style.left = '1560px';
+        kittypetNode.style.bottom = `${groundY + 80}px`;
+        kittypetNode.style.setProperty('--fur', '#e8c895');
+        kittypetNode.style.setProperty('--mark', '#a86b3c');
+        kittypetNode.innerHTML = `${catMarkup()}<span class="collar"></span><span class="nameplate">Smudge</span>`;
+        const kittypetFirstSeen = !game.kittypetMet;
+        kittypetNode.addEventListener('click', () => {
+            if (kittypetFirstSeen && !game.kittypetMet) {
+                game.kittypetMet = true;
+                setMessage('Smudge (Kittypet)', 'I am Smudge. I live with twolegs in the nest beyond this fence. They feed me out of a noisy can.');
+                return;
+            }
+            setMessage('Smudge (Kittypet)', rotatingText('Smudge', [
+                'My twolegs play soft music at sunhigh. The walls hum with it.',
+                'The fence is warm under my paws. Sometimes I sit here for whole sunrises.',
+                'A bigger kittypet from another nest hisses at me through the wires. I hiss back.',
+                'My collar has a tiny silver bell. Twolegs say it stops me from catching birds.',
+                'I have never tasted a real mouse. Is it nicer than the soft brown pellets?',
+                'I would join your clan, but I would miss my warm cushion.'
+            ]));
+        });
+        npcLayer.appendChild(kittypetNode);
+
         renderGhostCats();
         return;
     }
@@ -694,6 +819,9 @@ function addNpc(name, rank, x, bottom, fur, mark, handler) {
     const node = document.createElement('button');
     node.type = 'button';
     node.className = `cat npc ${rank.toLowerCase()}`;
+    if (name === 'Ravenstripe') {
+        node.classList.add('scarred-ear');
+    }
     node.style.left = `${x}px`;
     node.style.bottom = `${bottom}px`;
     node.style.setProperty('--fur', fur);
@@ -1038,7 +1166,7 @@ function openFurBush() {
             if (i === trueIndex) {
                 game.furBushFound = true;
                 furBush.hidden = true;
-                inspectEvidence('Torn fur');
+                revealFurTuft();
                 accusePanel.innerHTML = '';
                 renderInvestigationActions();
             } else {
@@ -1049,6 +1177,53 @@ function openFurBush() {
         search.appendChild(clump);
     }
     setMessage('Bush', 'A bush hides something. Part each clump until you find the torn fur.');
+}
+
+function revealFurTuft() {
+    if (!furTuft) {
+        return;
+    }
+    const culprit = cast.find((cat) => cat.name === firstMurderer);
+    const fur = culprit?.fur || '#3a2a1f';
+    furTuft.style.setProperty('--murderer-fur', fur);
+    furTuft.hidden = false;
+    setMessage('Bush', 'A clump of torn fur catches on the brambles. Click it to look closer.');
+}
+
+function inspectFurTuft() {
+    if (!furTuft || furTuft.hidden) {
+        return;
+    }
+    furTuft.hidden = true;
+    const culprit = cast.find((cat) => cat.name === firstMurderer);
+    const colorWord = describeFur(culprit?.fur || '#3a2a1f');
+    addNote(`Torn fur tuft: a ${colorWord} pelt color, matching ${firstMurderer}.`);
+    setMessage('Evidence', `The fur is ${colorWord} — the same shade as ${firstMurderer}'s pelt.`);
+    maybeEnableAccusation();
+}
+
+function describeFur(hex) {
+    const m = hex.match(/^#([0-9a-f]{6})$/i);
+    if (!m) return 'dark';
+    const v = parseInt(m[1], 16);
+    const r = (v >> 16) & 255;
+    const g = (v >> 8) & 255;
+    const b = v & 255;
+    const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+    if (lum > 200) return 'pale cream';
+    if (lum > 160) return 'light tan';
+    if (lum > 110) {
+        if (r > g && r > b) return 'reddish';
+        if (g > r && g > b) return 'mossy';
+        if (b > r) return 'cool grey';
+        return 'tawny brown';
+    }
+    if (lum > 60) {
+        if (r > g + 20) return 'rich russet';
+        if (g > r + 10) return 'dark olive';
+        return 'dark brown';
+    }
+    return 'inky black';
 }
 
 function buildSuspectBoard() {
@@ -1062,6 +1237,9 @@ function buildSuspectBoard() {
     const status = game.suspectStatus || {};
     const alibiSpent = Boolean(game.alibiUsed);
     cast.forEach((cat) => {
+        if (cat.rank === 'Leader' || cat.rank === 'Deputy') {
+            return;
+        }
         const row = document.createElement('div');
         row.className = `suspect-row ${status[cat.name] || ''}`;
 
@@ -1072,7 +1250,8 @@ function buildSuspectBoard() {
 
         const crossBtn = document.createElement('button');
         crossBtn.type = 'button';
-        crossBtn.textContent = 'Cross';
+        crossBtn.textContent = 'Eliminate';
+        crossBtn.title = 'Mark this cat as ruled out — they are not the murderer.';
         if (status[cat.name] === 'crossed') {
             crossBtn.classList.add('active');
         }
@@ -1085,7 +1264,8 @@ function buildSuspectBoard() {
 
         const checkBtn = document.createElement('button');
         checkBtn.type = 'button';
-        checkBtn.textContent = 'Check';
+        checkBtn.textContent = 'Suspect';
+        checkBtn.title = 'Flag this cat as a likely suspect.';
         if (status[cat.name] === 'checked') {
             checkBtn.classList.add('active');
         }
@@ -1119,7 +1299,7 @@ function buildSuspectBoard() {
 }
 
 function maybeEnableAccusation() {
-    if (foundClues.size < 3 || game.firstSolved) {
+    if (foundClues.size < 2 || game.firstSolved) {
         return;
     }
     chapter.textContent = 'The pattern is clear. Name the killer.';
@@ -1140,6 +1320,9 @@ function accuse(name) {
     document.getElementById('sleepBtn').addEventListener('click', sleepInWarriorDen);
     if (furBush) {
         furBush.hidden = true;
+    }
+    if (furTuft) {
+        furTuft.hidden = true;
     }
     renderAll();
     setMessage('Whiskerstar', `Good job, ${warriorName()}. ${firstMurderer} is cast out. From this day forward, you are a warrior.`);
@@ -1994,6 +2177,9 @@ document.querySelectorAll('.evidence').forEach((item) => {
 if (furBush) {
     furBush.addEventListener('click', openFurBush);
 }
+if (furTuft) {
+    furTuft.addEventListener('click', inspectFurTuft);
+}
 
 document.querySelectorAll('.den').forEach((den) => {
     den.addEventListener('click', () => enterDen(den.dataset.den));
@@ -2018,6 +2204,10 @@ playBtn.addEventListener('click', () => {
 instructionsBtn.addEventListener('click', () => instructionsDialog.showModal());
 changeNameBtn.addEventListener('click', promptForPrefix);
 genderBtn.addEventListener('click', cycleGender);
+const undoTitleBtn = document.getElementById('undoTitleBtn');
+if (undoTitleBtn) {
+    undoTitleBtn.addEventListener('click', undoTitleChange);
+}
 buildPeltPicker();
 updateTitlePreview();
 restartBtn.addEventListener('click', () => resetGame(true));

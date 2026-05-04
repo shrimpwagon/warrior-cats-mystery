@@ -262,7 +262,6 @@ p {
 }
 
 .world:not(.scene-camp) .den,
-.world:not(.scene-camp) .kit,
 .world:not(.scene-camp) .evidence,
 .world:not(.scene-camp) .bush,
 .world.mystery-solved .evidence,
@@ -598,42 +597,6 @@ p {
     box-shadow: inset 0 -20px 32px rgba(8, 14, 6, 0.42), 0 18px 28px rgba(0, 0, 0, 0.25);
 }
 
-.kit {
-    position: absolute;
-    bottom: 104px;
-    width: 38px;
-    height: 26px;
-    border-radius: 50% 45% 40% 50%;
-    background: var(--fur, #c99762);
-    box-shadow: inset 13px 0 0 rgba(255, 255, 255, 0.16), 0 8px 8px rgba(0, 0, 0, 0.22);
-}
-
-.kit::before,
-.kit::after {
-    content: "";
-    position: absolute;
-}
-
-.kit::before {
-    right: -10px;
-    top: 4px;
-    width: 19px;
-    height: 18px;
-    border-radius: 50%;
-    background: inherit;
-}
-
-.kit::after {
-    right: -3px;
-    top: -3px;
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-bottom: 10px solid var(--fur, #c99762);
-}
-
-.kit-one { left: 660px; --fur: #c99762; }
-.kit-two { left: 1320px; --fur: #b8b3a0; transform: scale(0.82); }
-.kit-three { left: 1960px; --fur: #4c3a2e; transform: scale(0.74); }
 
 .evidence {
     position: absolute;
@@ -790,6 +753,117 @@ p {
 
 .cat.facing-left {
     scale: -1 1;
+}
+
+.world.raining .cat,
+.world.raining .npc,
+.world.raining .ground,
+.world.raining .den,
+.world.raining .highrock,
+.world.raining .bush {
+    filter: brightness(0.78);
+}
+
+.world.raining::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        repeating-linear-gradient(105deg,
+            rgba(180, 200, 230, 0) 0 6px,
+            rgba(180, 200, 230, 0.32) 6px 7px,
+            rgba(180, 200, 230, 0) 7px 16px);
+    animation: rainFall 0.55s linear infinite;
+    z-index: 30;
+}
+
+@keyframes rainFall {
+    from { background-position: 0 0; }
+    to { background-position: 0 30px; }
+}
+
+.cat.scarred-ear::before {
+    width: 7px;
+    height: 1.5px;
+    background: #6b1414;
+    border-radius: 2px;
+    top: 4px;
+    left: 84px;
+    transform: rotate(-30deg);
+    z-index: 4;
+}
+
+.gathering-branch {
+    position: absolute;
+    width: 130px;
+    height: 12px;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #6b4a28, #3d2917);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+    z-index: 1;
+}
+
+.fur-tuft {
+    position: absolute;
+    left: 2960px;
+    bottom: 100px;
+    width: 44px;
+    height: 14px;
+    border-radius: 60% 30% 60% 30%;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    background: var(--murderer-fur, #3a2a1f);
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.4);
+    animation: tuftPulse 1.4s ease-in-out infinite;
+}
+
+.world:not(.scene-camp) .fur-tuft,
+.world.mystery-solved .fur-tuft {
+    display: none;
+}
+
+@keyframes tuftPulse {
+    0%, 100% { transform: translateY(0); filter: brightness(1); }
+    50% { transform: translateY(-2px); filter: brightness(1.15); }
+}
+
+.twoleg-fence {
+    position: absolute;
+    width: 320px;
+    height: 90px;
+    background:
+        repeating-linear-gradient(90deg, #b08658 0 14px, #6e4a25 14px 18px),
+        linear-gradient(180deg, #c69a6c, #7e552c);
+    border-top: 4px solid #5a3915;
+    border-bottom: 4px solid #3a2410;
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.32);
+    z-index: 1;
+}
+
+.kittypet .collar {
+    position: absolute;
+    left: 60px;
+    top: 38px;
+    width: 22px;
+    height: 6px;
+    background: #c83a4a;
+    border-radius: 4px;
+    z-index: 5;
+    box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.3);
+}
+
+.kittypet .collar::after {
+    content: "";
+    position: absolute;
+    left: 9px;
+    top: -3px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #f3e8b0;
+    box-shadow: 0 0 2px rgba(255, 235, 120, 0.8);
 }
 
 .player-cat {
@@ -1367,6 +1441,26 @@ dialog header {
     border: 1px solid rgba(204, 238, 255, 0.32);
     padding: 4px 10px;
     font-size: 0.95rem;
+}
+
+.undo-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(7, 14, 20, 0.72);
+    color: #cceeff;
+    border: 1px solid rgba(204, 238, 255, 0.32);
+    font-size: 1.2rem;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.undo-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
 }
 
 #genderBtn {
