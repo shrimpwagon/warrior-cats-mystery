@@ -1124,6 +1124,9 @@ function accuse(name) {
     addNote('Whiskerstar made you a warrior for exposing the murderer.');
     accusePanel.innerHTML = '<button id="sleepBtn" type="button">Sleep in Warrior Den</button>';
     document.getElementById('sleepBtn').addEventListener('click', sleepInWarriorDen);
+    if (furBush) {
+        furBush.hidden = true;
+    }
     renderAll();
     setMessage('Whiskerstar', `Good job, ${warriorName()}. ${firstMurderer} is cast out. From this day forward, you are a warrior.`);
 }
