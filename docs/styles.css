@@ -1205,12 +1205,17 @@ dialog header {
     text-align: left;
 }
 
-#changeNameBtn {
+#changeNameBtn,
+#genderBtn {
     background: rgba(7, 14, 20, 0.72);
     color: #cceeff;
     border: 1px solid rgba(204, 238, 255, 0.32);
     padding: 4px 10px;
     font-size: 0.95rem;
+}
+
+#genderBtn {
+    min-width: 110px;
 }
 
 .pelt-picker {

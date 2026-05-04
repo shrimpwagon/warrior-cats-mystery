@@ -36,6 +36,7 @@ const previewName = document.getElementById('previewName');
 const prefixDisplay = document.getElementById('prefixDisplay');
 const peltPicker = document.getElementById('peltPicker');
 const changeNameBtn = document.getElementById('changeNameBtn');
+const genderBtn = document.getElementById('genderBtn');
 
 const worldWidth = 3200;
 const groundY = 90;
@@ -131,6 +132,19 @@ const pelts = [
 let currentPrefix = 'Bramble';
 let currentFurIndex = 0;
 
+const genderCycle = ['tom', 'she-cat', 'non-binary'];
+const genderLabels = { tom: 'Tom', 'she-cat': 'She-cat', 'non-binary': 'Non-binary' };
+let currentGender = 'tom';
+
+function cycleGender() {
+    const next = (genderCycle.indexOf(currentGender) + 1) % genderCycle.length;
+    currentGender = genderCycle[next];
+    if (game) {
+        game.gender = currentGender;
+    }
+    updateTitlePreview();
+}
+
 function playerPrefix() {
     return game?.playerPrefix || currentPrefix || 'Bramble';
 }
@@ -175,6 +189,9 @@ function updateTitlePreview() {
         previewCat.innerHTML = catMarkup();
         previewCat.style.setProperty('--fur', pelt.fur);
         previewCat.style.setProperty('--mark', pelt.mark);
+    }
+    if (genderBtn) {
+        genderBtn.textContent = genderLabels[currentGender];
     }
 }
 
@@ -379,7 +396,7 @@ function applyMysteryClues() {
 
 function startGame() {
     game.started = true;
-    game.gender = Math.random() < 0.5 ? 'she-cat' : 'tom';
+    game.gender = currentGender;
     playOverlay.classList.add('fade-out');
     setTimeout(() => {
         playOverlay.hidden = true;
@@ -1306,8 +1323,28 @@ function proposeMate(name) {
 }
 
 function canMateWith(cat) {
+    if (!mateCandidates.has(cat.name)) {
+        return false;
+    }
+    if (game.gender === 'non-binary') {
+        return true;
+    }
     const playerGender = game.gender === 'tom' ? 'Tom' : 'She-cat';
-    return mateCandidates.has(cat.name) && cat.gender !== playerGender;
+    return cat.gender !== playerGender;
+}
+
+function playerCarriesKits() {
+    if (game.gender === 'she-cat') {
+        return true;
+    }
+    if (game.gender === 'tom') {
+        return false;
+    }
+    const mate = cast.find((cat) => cat.name === game.mate);
+    if (mate?.gender === 'She-cat') {
+        return false;
+    }
+    return true;
 }
 
 function sleepInWarriorDen() {
@@ -1564,7 +1601,7 @@ function askForKits() {
         addNote(`You and ${game.mate} are expecting kits in three days.`);
         accusePanel.innerHTML = '<button id="sleepBtn" type="button">Sleep in Warrior Den</button>';
         document.getElementById('sleepBtn').addEventListener('click', sleepInWarriorDen);
-        const birthText = game.gender === 'she-cat'
+        const birthText = playerCarriesKits()
             ? `You will have kits with ${game.mate}. They should arrive in three days.`
             : `${game.mate} will have kits. They should arrive in three days.`;
         setMessage('Nursery', birthText);
@@ -1602,7 +1639,7 @@ function updateKitsTimeline() {
                 mark: furPatterns[index].mark
             });
         }
-        const text = game.gender === 'she-cat' ? `You have ${kitCount} kit${kitCount === 1 ? '' : 's'} in camp.` : `${game.mate} has ${kitCount} kit${kitCount === 1 ? '' : 's'} in camp.`;
+        const text = playerCarriesKits() ? `You have ${kitCount} kit${kitCount === 1 ? '' : 's'} in camp.` : `${game.mate} has ${kitCount} kit${kitCount === 1 ? '' : 's'} in camp.`;
         addNote(text);
         setMessage('Camp', `${text} They carry both your fur colors.`);
         game.kitsHad = true;
@@ -1785,6 +1822,7 @@ playBtn.addEventListener('click', () => {
 });
 instructionsBtn.addEventListener('click', () => instructionsDialog.showModal());
 changeNameBtn.addEventListener('click', promptForPrefix);
+genderBtn.addEventListener('click', cycleGender);
 buildPeltPicker();
 updateTitlePreview();
 restartBtn.addEventListener('click', () => resetGame(true));
