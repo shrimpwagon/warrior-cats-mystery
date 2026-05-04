@@ -264,9 +264,138 @@ p {
 .world:not(.scene-camp) .den,
 .world:not(.scene-camp) .kit,
 .world:not(.scene-camp) .evidence,
+.world:not(.scene-camp) .bush,
 .world.mystery-solved .evidence,
+.world.mystery-solved .bush,
 .world:not(.scene-camp):not(.scene-moonpool) .highrock {
     display: none;
+}
+
+.bush {
+    position: absolute;
+    left: 2960px;
+    bottom: 80px;
+    width: 80px;
+    height: 70px;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    background: transparent;
+    filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.45));
+}
+
+.bush-leaves {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 60% 50% 55% 45% / 60% 65% 55% 50%;
+    background:
+        radial-gradient(circle at 30% 30%, #6da34a 0 22%, transparent 24%),
+        radial-gradient(circle at 70% 38%, #4f8a39 0 22%, transparent 24%),
+        radial-gradient(circle at 45% 65%, #5e9a40 0 22%, transparent 24%),
+        radial-gradient(circle at 25% 70%, #3e7b32 0 18%, transparent 20%),
+        radial-gradient(circle at 80% 70%, #6fa64a 0 16%, transparent 18%),
+        #4a8a38;
+    box-shadow: inset 0 -8px 14px rgba(0, 0, 0, 0.32);
+}
+
+.bush:hover .bush-leaves {
+    transform: scale(1.04);
+}
+
+.bush[hidden] {
+    display: none;
+}
+
+.fur-search {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    padding: 6px;
+}
+
+.fur-clump {
+    width: 60px;
+    height: 50px;
+    border-radius: 60% 50% 55% 45%;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background:
+        radial-gradient(circle at 35% 30%, #6da34a 0 30%, transparent 32%),
+        radial-gradient(circle at 70% 60%, #4f8a39 0 28%, transparent 30%),
+        #588f3d;
+    cursor: pointer;
+    color: #fff5bd;
+    font-size: 0.78rem;
+    text-align: center;
+    padding: 0;
+}
+
+.fur-clump.checked {
+    filter: brightness(0.7);
+    cursor: default;
+}
+
+.suspect-board {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.16);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.suspect-row {
+    display: grid;
+    grid-template-columns: minmax(110px, 1fr) auto auto auto;
+    gap: 6px;
+    align-items: center;
+    font-size: 0.92rem;
+}
+
+.suspect-row .suspect-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.suspect-row.crossed .suspect-name {
+    text-decoration: line-through;
+    color: #9aa3ad;
+}
+
+.suspect-row.checked .suspect-name {
+    color: #f0e3a8;
+    font-weight: 600;
+}
+
+.suspect-row button {
+    padding: 3px 8px;
+    font-size: 0.85rem;
+    background: rgba(7, 14, 20, 0.65);
+    color: #cceeff;
+    border: 1px solid rgba(204, 238, 255, 0.28);
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.suspect-row button.active {
+    background: rgba(240, 227, 168, 0.18);
+    border-color: #f0e3a8;
+    color: #f0e3a8;
+}
+
+.suspect-row button:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.notes-heading {
+    margin: 6px 0 4px;
+    font-size: 0.95rem;
+    color: #cceeff;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
 
 .parallax {

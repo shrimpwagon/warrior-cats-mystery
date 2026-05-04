@@ -37,6 +37,8 @@ const prefixDisplay = document.getElementById('prefixDisplay');
 const peltPicker = document.getElementById('peltPicker');
 const changeNameBtn = document.getElementById('changeNameBtn');
 const genderBtn = document.getElementById('genderBtn');
+const furBush = document.getElementById('furBush');
+const suspectBoard = document.getElementById('suspectBoard');
 
 const worldWidth = 3200;
 const groundY = 90;
@@ -175,6 +177,24 @@ function sanitizePrefix(raw) {
         return 'Bramble';
     }
     return cleaned.charAt(0).toUpperCase() + cleaned.slice(1).toLowerCase();
+}
+
+const baseAlibis = {
+    Whiskerstar: 'Slept in the leader den behind Highrock. Ashfall checked on them at moonhigh.',
+    Ashfall: 'Counted the warrior nests at moonhigh. Saw one warrior slip out toward the medicine den.',
+    Mistclaw: 'Hunted along the river path with Cloudspark before dawn.',
+    Ravenstripe: 'Says they were curled in the warrior den all night, eyes closed.',
+    Brindleleaf: 'Listened to Oakwhisker tell stories at the elder den until very late.',
+    Cloudspark: 'Washed thorns from her paws at the stream until moonset.',
+    Pinefoot: 'Repaired the pine barrier at the camp edge.',
+    Sorreltail: 'Returned moss bedding to the nursery for the queens.'
+};
+
+function alibiFor(name) {
+    if (name === firstMurderer) {
+        return `${name} claims they were asleep, but their nest was disturbed and their pelt smelled of pine resin.`;
+    }
+    return baseAlibis[name] || `${name} was asleep through the night.`;
 }
 
 function updateTitlePreview() {
@@ -343,7 +363,10 @@ function resetGame(showOverlay = true) {
         playerPrefix: currentPrefix,
         playerFurIndex: currentFurIndex,
         playerFur: pelts[currentFurIndex].fur,
-        playerMark: pelts[currentFurIndex].mark
+        playerMark: pelts[currentFurIndex].mark,
+        suspectStatus: {},
+        alibiUsed: {},
+        furBushFound: false
     };
     playerState.x = 120;
     playerState.y = 0;
@@ -356,6 +379,9 @@ function resetGame(showOverlay = true) {
     playBtn.textContent = 'Start';
     overlayText.textContent = 'Find the murderer before the trail goes cold, then live as a warrior of Moonclan.';
     accusePanel.innerHTML = '';
+    if (furBush) {
+        furBush.hidden = false;
+    }
     keys.clear();
     updateControlsVisibility();
     setScene('camp');
@@ -371,11 +397,6 @@ function chooseMurderer() {
 
 function applyMysteryClues() {
     const culprit = firstMurderer;
-    const culpritCat = cast.find((cat) => cat.name === culprit);
-    const furEvidence = document.querySelector('.evidence.fur');
-    if (furEvidence && culpritCat) {
-        furEvidence.style.setProperty('--murderer-fur', culpritCat.fur);
-    }
     cast.forEach((cat) => {
         if (cat.name === 'Whiskerstar') {
             cat.clue = `Whiskerstar heard Willowfur threaten to expose ${culprit} before dawn.`;
@@ -979,6 +1000,109 @@ function inspectEvidence(label) {
     addNote(notesByEvidence[label]);
     setMessage('Evidence', notesByEvidence[label]);
     maybeEnableAccusation();
+}
+
+function openFurBush() {
+    if (!game.started || game.firstSolved || game.furBushFound) {
+        return;
+    }
+    if (game.currentArea !== 'camp') {
+        return;
+    }
+    const labels = ['old leaves', 'dry twig', 'tuft of moss', 'pebble', 'spider web'];
+    const trueIndex = Math.floor(Math.random() * 5);
+    accusePanel.innerHTML = '<div class="fur-search" id="furSearch"></div>';
+    const search = document.getElementById('furSearch');
+    for (let i = 0; i < 5; i += 1) {
+        const clump = document.createElement('button');
+        clump.type = 'button';
+        clump.className = 'fur-clump';
+        clump.textContent = '?';
+        clump.addEventListener('click', () => {
+            if (clump.classList.contains('checked')) {
+                return;
+            }
+            clump.classList.add('checked');
+            if (i === trueIndex) {
+                game.furBushFound = true;
+                furBush.hidden = true;
+                inspectEvidence('Torn fur');
+                accusePanel.innerHTML = '';
+                renderInvestigationActions();
+            } else {
+                clump.textContent = labels[i];
+                setMessage('Bush', `You part the leaves and find ${labels[i]}. Keep searching.`);
+            }
+        });
+        search.appendChild(clump);
+    }
+    setMessage('Bush', 'A bush hides something. Part each clump until you find the torn fur.');
+}
+
+function buildSuspectBoard() {
+    if (!suspectBoard) {
+        return;
+    }
+    suspectBoard.innerHTML = '';
+    if (!game.started || game.firstSolved) {
+        return;
+    }
+    const status = game.suspectStatus || {};
+    const used = game.alibiUsed || {};
+    cast.forEach((cat) => {
+        const row = document.createElement('div');
+        row.className = `suspect-row ${status[cat.name] || ''}`;
+
+        const name = document.createElement('span');
+        name.className = 'suspect-name';
+        name.textContent = `${cat.rank} ${cat.name}`;
+        row.appendChild(name);
+
+        const crossBtn = document.createElement('button');
+        crossBtn.type = 'button';
+        crossBtn.textContent = 'Cross';
+        if (status[cat.name] === 'crossed') {
+            crossBtn.classList.add('active');
+        }
+        crossBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            game.suspectStatus[cat.name] = status[cat.name] === 'crossed' ? '' : 'crossed';
+            buildSuspectBoard();
+        });
+        row.appendChild(crossBtn);
+
+        const checkBtn = document.createElement('button');
+        checkBtn.type = 'button';
+        checkBtn.textContent = 'Check';
+        if (status[cat.name] === 'checked') {
+            checkBtn.classList.add('active');
+        }
+        checkBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            game.suspectStatus[cat.name] = status[cat.name] === 'checked' ? '' : 'checked';
+            buildSuspectBoard();
+        });
+        row.appendChild(checkBtn);
+
+        const alibiBtn = document.createElement('button');
+        alibiBtn.type = 'button';
+        alibiBtn.textContent = used[cat.name] ? 'Alibi seen' : 'Alibi';
+        alibiBtn.disabled = Boolean(used[cat.name]);
+        alibiBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            if (game.alibiUsed[cat.name]) {
+                return;
+            }
+            game.alibiUsed[cat.name] = true;
+            const text = alibiFor(cat.name);
+            addNote(`Alibi for ${cat.name}: ${text}`);
+            setMessage(`${cat.name}'s alibi`, text);
+            buildSuspectBoard();
+        });
+        row.appendChild(alibiBtn);
+
+        suspectBoard.appendChild(row);
+    });
 }
 
 function maybeEnableAccusation() {
@@ -1834,6 +1958,10 @@ document.querySelectorAll('.evidence').forEach((item) => {
     item.addEventListener('click', () => inspectEvidence(item.dataset.evidence));
 });
 
+if (furBush) {
+    furBush.addEventListener('click', openFurBush);
+}
+
 document.querySelectorAll('.den').forEach((den) => {
     den.addEventListener('click', () => enterDen(den.dataset.den));
 });
@@ -1905,6 +2033,7 @@ notebookBtn.addEventListener('click', () => {
     if (foundClues.size === 0) {
         notes.innerHTML = '<li>No clues yet.</li>';
     }
+    buildSuspectBoard();
     notebook.showModal();
 });
 
