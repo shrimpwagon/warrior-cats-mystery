@@ -295,7 +295,7 @@ function resetGame(showOverlay = true) {
         started: false,
         gender: '',
         day: 1,
-        firstLimit: 5,
+        firstLimit: 3,
         rank: 'Apprentice',
         currentArea: 'camp',
         firstSolved: false,
@@ -1017,7 +1017,7 @@ function endInvestigationDay() {
     bumpDayTimer();
 }
 
-const AUTO_DAY_MS = 5.6 * 60 * 1000;
+const AUTO_DAY_MS = 4 * 60 * 1000;
 
 function bumpDayTimer() {
     if (!game) {
