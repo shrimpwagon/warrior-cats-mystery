@@ -64,7 +64,7 @@ const baseCast = [
 ];
 
 const extraCats = {
-    Rosepelt: { rank: 'Medicine Cat', gender: 'She-cat', fur: '#f4c5d4', mark: '#dcdcdc' },
+    Rosesong: { rank: 'Medicine Cat', gender: 'She-cat', fur: '#f4c5d4', mark: '#dcdcdc' },
     Oakwhisker: { rank: 'Elder', gender: 'Tom', fur: '#6b5138', mark: '#cab07b' },
     Pebblekit: { rank: 'Kit', gender: 'Tom', fur: '#c99762', mark: '#f5d095' },
     Mosskit: { rank: 'Kit', gender: 'She-cat', fur: '#ded8c4', mark: '#857d67' },
@@ -97,7 +97,7 @@ const denDetails = {
     Nursery: ['Warm moss and soft bracken. A small kit is curled tight, fast asleep.', '<div class="nest"></div><div class="inside-kit one sleeping"></div>', ['Snowkit']],
     'Warrior Den': ['Crowded nests ring the walls. Once you are a warrior, you can sleep here to advance time.', '<div class="nest"></div><div class="nest"></div><div class="nest"></div>', ['Birchstep', 'Hollyfoot']],
     'Elder Den': ['Dry leaves and old stories fill the air.', '<div class="nest"></div><div class="nest"></div>', ['Oakwhisker']],
-    'Medicine Den': ['A leafy den woven from ferns, ivy, and sweet-smelling herbs.', '<div class="leaf-pile"></div><div class="herb-bundle"></div>', ['Rosepelt']]
+    'Medicine Den': ['A leafy den woven from ferns, ivy, and sweet-smelling herbs.', '<div class="leaf-pile"></div><div class="herb-bundle"></div>', ['Rosesong']]
 };
 
 const playerState = {
@@ -1297,10 +1297,10 @@ function talkInsideDen(name) {
             'Oakwhisker chuckles. "I remember when these stones were warmer in summer. The forest forgets nothing."',
             'Oakwhisker shifts in the leaves. "Listen more than you speak, young one. Stories live in old bones."'
         ],
-        Rosepelt: [
-            'Rosepelt sorts herbs. "The Moonpool will show what the living miss."',
-            'Rosepelt holds out a sprig of catmint. "If a cough comes, find me before sunset."',
-            'Rosepelt studies you a moment. "Your spirit feels strong today. Hold onto that."'
+        Rosesong: [
+            'Rosesong sorts herbs. "The Moonpool will show what the living miss."',
+            'Rosesong holds out a sprig of catmint. "If a cough comes, find me before sunset."',
+            'Rosesong studies you a moment. "Your spirit feels strong today. Hold onto that."'
         ]
     };
     const fullCat = cast.find((cat) => cat.name === name) || extraCats[name];

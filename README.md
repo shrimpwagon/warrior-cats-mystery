@@ -81,7 +81,7 @@ Late game:
 - First leader: Whiskerstar
 - First deputy: Ashfall, later Ashstar
 - Warriors: Mistclaw, Ravenstripe, Brindleleaf, Cloudspark, Pinefoot, Sorreltail
-- Medicine cat: Rosepelt
+- Medicine cat: Rosesong
 - Elder: Oakwhisker
 - Starting nursery kits: Pebblekit, Mosskit, Tinykit
 - Sunclan cats: Nettleclaw, Dawnpelt, Russetfang, Sunstar
