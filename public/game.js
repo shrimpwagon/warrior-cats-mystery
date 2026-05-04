@@ -619,6 +619,9 @@ function isRaining() {
 function renderAll() {
     world.classList.toggle('mystery-solved', Boolean(game.firstSolved));
     world.classList.toggle('raining', isRaining());
+    if (notebookBtn) {
+        notebookBtn.hidden = Boolean(game.firstSolved);
+    }
     renderCats();
     renderAreas();
     updateHud();
@@ -2342,6 +2345,9 @@ window.addEventListener('keyup', (event) => {
 });
 
 notebookBtn.addEventListener('click', () => {
+    if (game?.firstSolved) {
+        return;
+    }
     if (foundClues.size === 0) {
         notes.innerHTML = '<li>No clues yet.</li>';
     }
