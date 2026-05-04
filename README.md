@@ -155,6 +155,34 @@ curl -sI --max-time 10 http://warrior-cats-mystery/
 
 Expected HTTP status is `200 OK` or another 2xx/3xx status.
 
+## Updating The GitHub Pages Game
+
+GitHub Pages is configured to publish from the `master` branch `/docs` folder. The local Podium game is served from `public/`, so updates must be copied into `docs/` before committing.
+
+After changing the game:
+
+```bash
+podium node --check public/game.js
+cp -r public/. docs/
+podium supervisor restart all
+curl -sI --max-time 10 http://warrior-cats-mystery/
+git add .
+git commit -m "Update game"
+git push
+```
+
+After the push, GitHub Pages rebuilds automatically. It usually takes 30 seconds to a few minutes. The public URL is:
+
+```text
+https://shrimpwagon.github.io/warrior-cats-mystery/
+```
+
+You can check the live page with:
+
+```bash
+curl -sI --max-time 10 https://shrimpwagon.github.io/warrior-cats-mystery/
+```
+
 ## Notes For AI Agents
 
 This is a Podium-managed plain Node project. Do not install runtimes or services on the host. Run project tooling through Podium, for example `podium node --check public/game.js`.
@@ -189,6 +217,8 @@ If you change the browser game and want GitHub Pages to reflect it, copy `public
 ```bash
 cp -r public/. docs/
 ```
+
+Do not push game changes without copying `public/` to `docs/`; otherwise the local Podium version and the GitHub Pages version will drift apart.
 
 After edits, run:
 
