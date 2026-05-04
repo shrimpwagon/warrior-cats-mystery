@@ -458,7 +458,15 @@ function resetGame(showOverlay = true) {
         alibiUsed: false,
         furBushFound: false,
         kittypetMet: false,
-        trustReachedDay: {}
+        trustReachedDay: {},
+        battleStats: {
+            playerMaxHp: 20,
+            playerDmg: 5,
+            playerHeal: 4,
+            enemyMaxHp: 20,
+            enemyDmg: 5,
+            enemyHeal: 3
+        }
     };
     playerState.x = 120;
     playerState.y = 0;
@@ -869,6 +877,7 @@ function addNpc(name, rank, x, bottom, fur, mark, handler) {
     const node = document.createElement('button');
     node.type = 'button';
     node.className = `cat npc ${rank.toLowerCase()}`;
+    node.dataset.catName = name;
     if (name === 'Ravenstripe') {
         node.classList.add('scarred-ear');
     }
@@ -1624,7 +1633,150 @@ function visitArea(area) {
         setMessage('Sunclan Border', 'You cross the river stones into Sunclan scent. Their patrol bristles at you.');
     } else if (area === 'fighting') {
         setMessage('Fighting Grounds', 'Reedpaw and Fernpaw train with moss balls and quick battle turns.');
+        if (!game.ghostMode) {
+            accusePanel.innerHTML = '<button id="fightReedpawBtn" type="button">Battle Reedpaw</button>';
+            document.getElementById('fightReedpawBtn').addEventListener('click', startReedpawBattle);
+        }
     }
+}
+
+function startReedpawBattle() {
+    if (!game.battleStats) {
+        return;
+    }
+    const stats = game.battleStats;
+    game.battle = {
+        playerHp: stats.playerMaxHp,
+        enemyHp: stats.enemyMaxHp,
+        turn: 'player',
+        ended: false
+    };
+    renderBattleUI();
+    setMessage('Reedpaw', 'Reedpaw bows playfully. "Show me what you know, warrior."');
+}
+
+function renderBattleUI() {
+    const stats = game.battleStats;
+    const b = game.battle;
+    accusePanel.innerHTML = `
+        <div class="battle">
+            <div class="battle-row">
+                <div class="battle-side">
+                    <div class="battle-name">${warriorName()}</div>
+                    <div class="battle-bar"><span class="battle-fill" style="width:${Math.max(0, b.playerHp / stats.playerMaxHp) * 100}%;"></span></div>
+                    <div class="battle-hp">${Math.max(0, b.playerHp)}/${stats.playerMaxHp}</div>
+                </div>
+                <div class="battle-vs">VS</div>
+                <div class="battle-side">
+                    <div class="battle-name">Reedpaw</div>
+                    <div class="battle-bar enemy"><span class="battle-fill" style="width:${Math.max(0, b.enemyHp / stats.enemyMaxHp) * 100}%;"></span></div>
+                    <div class="battle-hp">${Math.max(0, b.enemyHp)}/${stats.enemyMaxHp}</div>
+                </div>
+            </div>
+            <div class="battle-actions">
+                <button id="battleScratch" type="button" ${b.turn !== 'player' || b.ended ? 'disabled' : ''}>Scratch (${stats.playerDmg})</button>
+                <button id="battleHeal" type="button" ${b.turn !== 'player' || b.ended ? 'disabled' : ''}>Heal (+${stats.playerHeal})</button>
+            </div>
+        </div>
+    `;
+    if (!b.ended) {
+        document.getElementById('battleScratch').addEventListener('click', () => playerBattleAction('scratch'));
+        document.getElementById('battleHeal').addEventListener('click', () => playerBattleAction('heal'));
+    }
+}
+
+function playBattleAnimation(target, type) {
+    const node = target === 'enemy'
+        ? npcLayer.querySelector('[data-cat-name="Reedpaw"]')
+        : player;
+    if (!node) {
+        return;
+    }
+    node.classList.add(type === 'scratch' ? 'fx-scratched' : 'fx-healed');
+    setTimeout(() => {
+        node.classList.remove('fx-scratched', 'fx-healed');
+    }, 700);
+}
+
+function playerBattleAction(action) {
+    const b = game.battle;
+    const stats = game.battleStats;
+    if (!b || b.ended || b.turn !== 'player') {
+        return;
+    }
+    if (action === 'scratch') {
+        b.enemyHp -= stats.playerDmg;
+        playBattleAnimation('enemy', 'scratch');
+        setMessage('Battle', `You scratch Reedpaw for ${stats.playerDmg} damage.`);
+    } else {
+        b.playerHp = Math.min(stats.playerMaxHp, b.playerHp + stats.playerHeal);
+        playBattleAnimation('player', 'heal');
+        setMessage('Battle', `You lick a wound and recover ${stats.playerHeal} health.`);
+    }
+    b.turn = 'enemy';
+    renderBattleUI();
+    if (b.enemyHp <= 0) {
+        endBattle('win');
+        return;
+    }
+    setTimeout(enemyBattleTurn, 700);
+}
+
+function enemyBattleTurn() {
+    const b = game.battle;
+    const stats = game.battleStats;
+    if (!b || b.ended) {
+        return;
+    }
+    const lowHp = b.enemyHp <= stats.enemyMaxHp * 0.35;
+    const heal = lowHp && Math.random() < 0.7;
+    if (heal) {
+        b.enemyHp = Math.min(stats.enemyMaxHp, b.enemyHp + stats.enemyHeal);
+        playBattleAnimation('enemy', 'heal');
+        setMessage('Battle', `Reedpaw licks his wounds and recovers ${stats.enemyHeal} health.`);
+    } else {
+        b.playerHp -= stats.enemyDmg;
+        playBattleAnimation('player', 'scratch');
+        setMessage('Battle', `Reedpaw rakes his claws across you for ${stats.enemyDmg} damage.`);
+    }
+    b.turn = 'player';
+    renderBattleUI();
+    if (b.playerHp <= 0) {
+        endBattle('lose');
+    }
+}
+
+function rand(min, max) {
+    return min + Math.floor(Math.random() * (max - min + 1));
+}
+
+function endBattle(result) {
+    const stats = game.battleStats;
+    game.battle.ended = true;
+    stats.playerMaxHp += rand(3, 5);
+    stats.playerDmg += rand(1, 2);
+    stats.enemyMaxHp += rand(1, 2);
+    stats.enemyDmg += rand(1, 2);
+    if (result === 'win') {
+        addNote(`You won a sparring round against Reedpaw. (Now ${stats.playerMaxHp} HP, ${stats.playerDmg} damage.)`);
+        accusePanel.innerHTML = '<button id="rematchBtn" type="button">Battle Reedpaw Again</button><button id="leaveBattleBtn" type="button">Leave</button>';
+        document.getElementById('rematchBtn').addEventListener('click', startReedpawBattle);
+        document.getElementById('leaveBattleBtn').addEventListener('click', () => {
+            visitArea('fighting');
+        });
+        setMessage('Reedpaw', 'Reedpaw flops onto his side. "Mercy! Good fight, warrior."');
+        return;
+    }
+    addNote('You were knocked out sparring with Reedpaw. Rosesong patched you up.');
+    accusePanel.innerHTML = '';
+    setMessage('Battle', 'Reedpaw\'s last scratch puts you out cold...');
+    setTimeout(() => {
+        visitArea('camp');
+        setTimeout(() => {
+            enterDen('Medicine Den');
+            setMessage('Rosesong', 'You woke up fast. You got knocked out during the battle. Rest a moment and try again whenever you want.');
+        }, 400);
+    }, 900);
 }
 
 function openTicTacToe() {
