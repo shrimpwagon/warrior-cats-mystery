@@ -57,7 +57,7 @@ const baseCast = [
     ['Whiskerstar', 'Leader', 'Tom', 308, 224, '#d6c9a8', '#7a674a', 'Whiskerstar saw Willowfur arguing near the medicine den before moonhigh.'],
     ['Ashfall', 'Deputy', 'Tom', 506, 96, '#777a78', '#d4d4c8', 'Ashfall confirms Ravenstripe left the warrior den after everyone settled.'],
     ['Mistclaw', 'Warrior', 'Tom', 1160, 90, '#8fa0a6', '#eef6f5', 'Mistclaw says the killer smelled of pine resin.'],
-    ['Ravenstripe', 'Warrior', 'Tom', 1660, 90, '#171717', '#4b4b4b', 'Ravenstripe denies everything too quickly and has a scratched ear.'],
+    ['Ravenstripe', 'Warrior', 'Tom', 1660, 90, '#171717', '#4b4b4b', 'Ravenstripe seems calm but has a small scratch on one ear.'],
     ['Brindleleaf', 'Warrior', 'Tom', 2060, 90, '#a76d3f', '#4d2d1c', 'Brindleleaf saw dark fur snagged on the elder den brambles.'],
     ['Cloudspark', 'Warrior', 'She-cat', 2350, 90, '#f0eee1', '#c4b892', 'Cloudspark heard a splash from the muddy stream path after the attack.'],
     ['Pinefoot', 'Warrior', 'Tom', 2590, 90, '#6a4d34', '#263d23', 'Pinefoot says Ravenstripe handled pine resin while repairing the camp barrier.'],
@@ -86,7 +86,7 @@ const firstLines = {
     Whiskerstar: ['My ears heard anger by the medicine den. Willowfur hissed that someone had stolen prey.', 'A leader must see truth through fog. Ask who left camp with mud on their paws.'],
     Ashfall: ['I counted the nests. Ravenstripe slipped out after the camp went quiet.', 'Find what clung to his pelt. The forest keeps receipts.'],
     Mistclaw: ['Willowfur brushed past me earlier. Later, the clearing smelled sharp with pine resin.', 'The hunting grounds are good for clearing fear from your chest.'],
-    Ravenstripe: ['Murder? I was asleep. No, I did not leave camp. Why are you staring at my ear?', 'Willowfur made enemies. Maybe ask Brindleleaf. Stop circling me.'],
+    Ravenstripe: ['Such terrible news about Willowfur. I was asleep when it happened.', 'I hope they find whoever did this. The clan needs peace.'],
     Brindleleaf: ['The elder den brambles caught a tuft of torn fur.', 'Warrior life means watching shadows even after the clan starts purring again.'],
     Cloudspark: ['There was a splash by the stream path. Then pawsteps, heavy and fast.', 'The borders are quiet today, but quiet can still hide claws.'],
     Pinefoot: ['Ravenstripe and I patched the pine-barrier. Resin stuck to his paws.', 'The fighting grounds are open now. Reedpaw and Fernpaw are always training.'],
@@ -508,7 +508,7 @@ function applyMysteryClues() {
         } else if (cat.name === 'Mistclaw') {
             cat.clue = `Mistclaw says the killer smelled of pine resin, the same scent on ${culprit}.`;
         } else if (cat.name === culprit) {
-            cat.clue = `${culprit} denies everything too quickly and has a fresh scratch.`;
+            cat.clue = `${culprit} seems perfectly calm, but you notice a small fresh scratch on one ear.`;
         } else if (cat.name === 'Brindleleaf') {
             cat.clue = `Brindleleaf saw fur matching ${culprit}'s pelt snagged on elder den brambles.`;
         } else if (cat.name === 'Cloudspark') {
@@ -1189,8 +1189,8 @@ function speak(cat) {
 
     if (!game.firstSolved && cat.name === firstMurderer) {
         const line = questioned.has(cat.name)
-            ? `Stop asking me things. Willowfur should have kept her nose out of my nest.`
-            : `Murder? I was asleep. No, I did not leave camp. Why are you staring at my scratch?`;
+            ? `It's awful. Willowfur was a good warrior. I hope they catch whoever did it soon.`
+            : `Such terrible news about Willowfur. I was asleep when it happened. Sorry I can't help more.`;
         if (!questioned.has(cat.name) && questioned.size < 2) {
             addNote(`${cat.rank} ${cat.name}: ${cat.clue}`);
         }
