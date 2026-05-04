@@ -631,9 +631,9 @@ p {
     border-bottom: 10px solid var(--fur, #c99762);
 }
 
-.kit-one { left: 925px; --fur: #c99762; }
-.kit-two { left: 985px; --fur: #b8b3a0; transform: scale(0.82); }
-.kit-three { left: 1040px; --fur: #4c3a2e; transform: scale(0.74); }
+.kit-one { left: 660px; --fur: #c99762; }
+.kit-two { left: 1320px; --fur: #b8b3a0; transform: scale(0.82); }
+.kit-three { left: 1960px; --fur: #4c3a2e; transform: scale(0.74); }
 
 .evidence {
     position: absolute;

@@ -635,7 +635,14 @@ function renderCampKits() {
         if (!shouldShowLivingCat(name)) {
             return;
         }
-        const x = stage === 'warrior' ? 1780 + index * 82 : stage === 'apprentice' ? 1220 + index * 78 : 880 + index * 64;
+        const kitSpots = [620, 1240, 1900, 2440, 760, 1520, 2240];
+        const apprenticeSpots = [580, 1200, 1880, 2380, 760];
+        const warriorSpots = [1780, 1960, 2160, 2360, 1880];
+        const x = stage === 'warrior'
+            ? warriorSpots[index % warriorSpots.length]
+            : stage === 'apprentice'
+                ? apprenticeSpots[index % apprenticeSpots.length]
+                : kitSpots[index % kitSpots.length];
         addNpc(name, stage === 'warrior' ? 'Warrior' : stage === 'apprentice' ? 'Apprentice' : 'Kit', x, groundY, kit.fur, kit.mark, () => setMessage(name, rotatingText(name, [
             stage === 'kit' ? `${name} tumbles through the clearing.` : `${name} asks to practice patrol steps.`,
             stage === 'warrior' ? `${name} says, "I can go on patrol now."` : `${name} bats at a moss scrap.`,
