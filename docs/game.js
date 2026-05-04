@@ -460,7 +460,7 @@ function updateHud() {
     clueCount.textContent = game.firstSolved ? `Trust ${mateTrust}/3${game.rose ? ' Rose' : ''}` : `Clues ${clueTotal}/6`;
     dayCount.textContent = game.firstSolved ? `Day ${game.day}` : `Day ${game.day}/${game.firstLimit}`;
     rankBadge.textContent = game.rank;
-    preyCount.textContent = game.preyInMouth ? 'Prey in mouth' : `Prey ${game.prey}`;
+    preyCount.textContent = `Prey ${game.prey}${game.preyInMouth ? ' (in mouth)' : ''}`;
     notes.innerHTML = Array.from(foundClues).map((note) => `<li>${note}</li>`).join('');
 }
 
@@ -1317,7 +1317,7 @@ function catchMouse() {
     }
     game.mouseVisible = false;
     game.preyInMouth = true;
-    game.prey = 1;
+    game.prey += 1;
     huntScene.classList.add('caught');
     addNote('You caught a mouse in the hunting grounds.');
     updateHud();
@@ -1334,7 +1334,6 @@ function givePrey(name = 'Sorreltail') {
         return;
     }
     game.preyInMouth = false;
-    game.prey = 0;
     game.trust[name] = Math.min(3, trustFor(name) + 1);
     addNote(`${name} trust increased to ${trustFor(name)}/3.`);
     const cat = cast.find((entry) => entry.name === name);
