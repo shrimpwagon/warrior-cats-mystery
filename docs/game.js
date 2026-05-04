@@ -60,7 +60,7 @@ const baseCast = [
     ['Ravenstripe', 'Warrior', 'Tom', 1660, 90, '#171717', '#4b4b4b', 'Ravenstripe seems calm but has a small scratch on one ear.'],
     ['Brindleleaf', 'Warrior', 'Tom', 2060, 90, '#a76d3f', '#4d2d1c', 'Brindleleaf saw dark fur snagged on the elder den brambles.'],
     ['Cloudspark', 'Warrior', 'She-cat', 2350, 90, '#f0eee1', '#c4b892', 'Cloudspark heard a splash from the muddy stream path after the attack.'],
-    ['Pinefoot', 'Warrior', 'Tom', 2590, 90, '#6a4d34', '#263d23', 'Pinefoot says Ravenstripe handled pine resin while repairing the camp barrier.'],
+    ['Pinefoot', 'Warrior', 'She-cat', 2590, 90, '#6a4d34', '#263d23', 'Pinefoot says Ravenstripe handled pine resin while repairing the camp barrier.'],
     ['Sorreltail', 'Warrior', 'She-cat', 760, 90, '#c55f45', '#f0b172', 'Sorreltail says Willowfur discovered stolen prey hidden under Ravenstripe’s nest.']
 ];
 
@@ -84,7 +84,7 @@ const mateCandidates = new Set(['Mistclaw', 'Brindleleaf', 'Cloudspark', 'Sorrel
 
 const firstLines = {
     Whiskerstar: ['My ears heard anger by the medicine den. Willowfur hissed that someone had stolen prey.', 'A leader must see truth through fog. Ask who left camp with mud on their paws.'],
-    Ashfall: ['I counted the nests. Ravenstripe slipped out after the camp went quiet.', 'Find what clung to his pelt. The forest keeps receipts.'],
+    Ashfall: ['I counted the nests. Ravenstripe slipped out after the camp went quiet. My mate Pinefoot was beside me asleep the whole night.', 'Find what clung to their pelt. The forest keeps receipts. Pinefoot would have noticed too if she had not been so tired.'],
     Mistclaw: ['Willowfur brushed past me earlier. Later, the clearing smelled sharp with pine resin.', 'The hunting grounds are good for clearing fear from your chest.'],
     Ravenstripe: ['Such terrible news about Willowfur. I was asleep when it happened.', 'I hope they find whoever did this. The clan needs peace.'],
     Brindleleaf: ['The elder den brambles caught a tuft of torn fur.', 'Warrior life means watching shadows even after the clan starts purring again.'],
@@ -269,9 +269,9 @@ const flirtyLines = {
         'Sorreltail says, "If you ever ask the right question, I have the right answer."'
     ],
     Pinefoot: [
-        'Pinefoot clears his throat. "I am not good at this. But I would like to be your mate."',
-        'Pinefoot watches you carefully. "Tell me if I should stop. I will not be foolish."',
-        'Pinefoot rests his paw briefly on yours. "Some bonds steady a clan. Maybe ours could."'
+        'Pinefoot tips her head. "Ashfall is lucky. I hope someone treats you the same way."',
+        'Pinefoot watches you carefully. "Friends like you keep this clan steady."',
+        'Pinefoot rests her paw briefly on yours. "I will always have your back, warrior."'
     ],
     Ravenstripe: [
         'Ravenstripe glances sideways. "Stop making me feel things, will you?"',
@@ -652,7 +652,7 @@ function renderCats() {
         addExtraNpc('Reedpaw', 760, groundY, () => setMessage('Reedpaw (Tom)', rotatingText('Reedpaw', ['Watch this battle move!', 'Fernpaw says I kick too much dust.', 'One day I will guard the border.'])));
         addExtraNpc('Fernpaw', 900, groundY, () => setMessage('Fernpaw (She-cat)', rotatingText('Fernpaw', ['Press hard, turn fast, never show your belly.', 'Reedpaw brags too much.', 'Training dust gets everywhere.'])));
         if (shouldShowLivingCat('Pinefoot')) {
-            addNpc('Pinefoot', 'Warrior', 1120, groundY, '#6a4d34', '#263d23', () => setMessage('Pinefoot (Tom)', rotatingText('Pinefoot', ['Keep your claws sheathed for practice.', 'Good footwork wins fights.', 'The apprentices are improving.'])));
+            addNpc('Pinefoot', 'Warrior', 1120, groundY, '#6a4d34', '#263d23', () => setMessage('Pinefoot (She-cat)', rotatingText('Pinefoot', ['Keep your claws sheathed for practice.', 'Good footwork wins fights.', 'The apprentices are improving.'])));
         }
         renderGhostCats();
         return;
@@ -1132,7 +1132,33 @@ function speak(cat) {
         return;
     }
     if (game.ashstarLeader && cat.name === 'Ashstar') {
-        setMessage('Ashstar', game.moonpoolDone ? 'Starclan has granted my lives. You are my deputy now.' : 'Come with me to the Moonpool, deputy.');
+        const pinefootKilled = firstMurderer === 'Pinefoot';
+        const lines = pinefootKilled
+            ? [
+                'Ashstar stares into the embers. "I never thought my mate Pinefoot could turn to darkness. Willowfur died for it."',
+                game.moonpoolDone
+                    ? 'Starclan has granted my lives, but the grief stays. Pinefoot was my heart, and she chose the dark.'
+                    : 'Come with me to the Moonpool. Even now, I hear Pinefoot in my dreams. I do not know if I forgive her.'
+            ]
+            : [
+                game.moonpoolDone ? 'Starclan has granted my lives. You are my deputy now.' : 'Come with me to the Moonpool, deputy.',
+                'Pinefoot keeps watch on the camp barrier while we plan. She is steady, my mate.'
+            ];
+        setMessage('Ashstar', rotatingText('AshstarTalk', lines));
+        return;
+    }
+    if (!game.firstSolved && cat.name === 'Ashfall' && firstMurderer === 'Pinefoot') {
+        const pinefootLines = [
+            'Ashfall lowers his head. "Pinefoot... my mate. She slipped out of our nest in the dark and I did not stop her. I am sorry."',
+            'Ashfall whispers, "Her pelt smelled of pine resin when she came back. I did not want to believe it."'
+        ];
+        const idx = questioned.has(cat.name) ? 1 : 0;
+        if (!questioned.has(cat.name) && questioned.size < 2) {
+            addNote(`${cat.rank} ${cat.name}: Ashfall confirms his mate Pinefoot left the warrior den that night.`);
+        }
+        questioned.add(cat.name);
+        setMessage(`${cat.name}, ${cat.rank} (${cat.gender})`, pinefootLines[idx]);
+        maybeEnableAccusation();
         return;
     }
     if (game.firstSolved) {
@@ -1942,6 +1968,12 @@ function askForCatMate(cat) {
 }
 
 function canMateWith(cat) {
+    if (!cat || cat.rank === 'Leader' || cat.rank === 'Deputy') {
+        return false;
+    }
+    if (cat.name === 'Pinefoot') {
+        return false;
+    }
     if (!mateCandidates.has(cat.name)) {
         return false;
     }
