@@ -283,6 +283,9 @@ function playButtonSound() {
 }
 
 function resetGame(showOverlay = true) {
+    if (game?.dayTimer) {
+        clearTimeout(game.dayTimer);
+    }
     foundClues = new Set();
     questioned = new Set();
     cast = freshCast();
@@ -404,6 +407,7 @@ function startGame() {
         updateControlsVisibility();
     }, 520);
     setMessage('Moonclan', `You are ${apprenticeName()}, a ${game.gender}. Willowfur has been murdered. Find the killer before day ${game.firstLimit} ends.`);
+    bumpDayTimer();
     renderInvestigationActions();
 }
 
@@ -858,9 +862,7 @@ function renderAreas() {
         }
         if (game.currentArea === 'borders') {
             addAreaButton('sunclan', playerState.x + 220, 'Sunclan');
-            if (!game.ticTacToeDone) {
-                addAreaButton('tictactoe', playerState.x + 520, 'Tic Tac Toe');
-            }
+            addAreaButton('tictactoe', playerState.x + 520, 'Tic Tac Toe');
         }
         return;
     }
@@ -1012,6 +1014,35 @@ function endInvestigationDay() {
     }
     setMessage('Moonclan', `Night falls. Day ${game.day} begins.`);
     renderInvestigationActions();
+    bumpDayTimer();
+}
+
+const AUTO_DAY_MS = 7 * 60 * 1000;
+
+function bumpDayTimer() {
+    if (!game) {
+        return;
+    }
+    clearTimeout(game.dayTimer);
+    if (!game.started || game.ended) {
+        return;
+    }
+    game.dayTimer = setTimeout(autoAdvanceDay, AUTO_DAY_MS);
+}
+
+function autoAdvanceDay() {
+    if (!game?.started || game.ended || !playOverlay.hidden) {
+        return;
+    }
+    if (playerState.insideDen || game.gatheringActive) {
+        bumpDayTimer();
+        return;
+    }
+    if (!game.firstSolved) {
+        endInvestigationDay();
+        return;
+    }
+    sleepInWarriorDen();
 }
 
 function enterDen(name) {
@@ -1232,20 +1263,22 @@ function finishTicTacToe(cells) {
         return false;
     }
     if (winner !== 'X') {
-        setMessage('Mistclaw', 'Better luck next time. You lost this round, but you can retry.');
-        accusePanel.insertAdjacentHTML('beforeend', '<button id="retryTttBtn" type="button">Retry</button>');
-        document.getElementById('retryTttBtn').addEventListener('click', openTicTacToe);
+        accusePanel.innerHTML = '';
+        setMessage('Mistclaw', 'Better luck next time. Step up to the stones again whenever you want.');
         return true;
     }
     game.ticTacToeDone = true;
+    accusePanel.innerHTML = '';
     if (!game.roseWon) {
         game.roseWon = true;
         game.rose = true;
         addNote('Mistclaw gave you a special rose for finishing border tic-tac-toe.');
+        setMessage('Mistclaw', 'Good job. You win. Take this special rose.');
+    } else {
+        setMessage('Mistclaw', 'Good job. You win again, though I have no more roses to give.');
     }
     renderAreas();
     updateHud();
-    setMessage('Mistclaw', 'Good job. You win. Take this special rose.');
     return true;
 }
 
@@ -1355,6 +1388,7 @@ function sleepInWarriorDen() {
     if (game.ended) {
         return;
     }
+    bumpDayTimer();
     game.day += 1;
     if (!game.ghostMode && game.day >= 40) {
         endOldAge();
@@ -1444,9 +1478,10 @@ function becomeGhost() {
     }, 520);
     accusePanel.innerHTML = '<button id="sleepBtn" type="button">Drift Until Dusk</button>';
     document.getElementById('sleepBtn').addEventListener('click', sleepInWarriorDen);
-    addNote('You chose to keep playing as a ghost. Living cats only sense your presence. You can no longer enter dens or organize patrols.');
+    addNote('You chose to keep playing as a ghost. Living cats only sense your presence. You can no longer enter dens or organize patrols, but rivers cannot push your starry pelt back.');
     renderAll();
     setMessage('Starclan', 'Your pelt turns starry. You can float through Moonclan and visit the Moonpool whenever you want.');
+    bumpDayTimer();
 }
 
 function updateGhostTimeline() {
@@ -1755,7 +1790,7 @@ function movePlayer() {
         playerState.moving = true;
     }
 
-    if (touchesRiver(playerState.x)) {
+    if (!game.ghostMode && touchesRiver(playerState.x)) {
         playerState.x = previousX + (playerState.x > previousX ? -42 : 42);
         setMessage(warriorName(), 'I can’t swim! The river pushes you back.');
     }
