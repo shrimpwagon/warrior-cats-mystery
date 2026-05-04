@@ -250,6 +250,10 @@ function updateTitlePreview() {
     if (genderBtn) {
         genderBtn.textContent = genderLabels[currentGender];
     }
+    const undoBtn = document.getElementById('undoTitleBtn');
+    if (undoBtn) {
+        undoBtn.disabled = titleHistory.length === 0;
+    }
 }
 
 function selectPelt(index) {
