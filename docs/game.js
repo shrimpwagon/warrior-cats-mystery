@@ -365,7 +365,7 @@ function resetGame(showOverlay = true) {
         playerFur: pelts[currentFurIndex].fur,
         playerMark: pelts[currentFurIndex].mark,
         suspectStatus: {},
-        alibiUsed: {},
+        alibiUsed: false,
         furBushFound: false
     };
     playerState.x = 120;
@@ -993,8 +993,6 @@ function inspectEvidence(label) {
         return;
     }
     const notesByEvidence = {
-        'Pine resin': `Golden pine resin beside Willowfur matches the sticky scent on ${firstMurderer}'s paws.`,
-        'Muddy pawprints': `Muddy pawprints lead from the stream path toward ${firstMurderer}'s nest.`,
         'Torn fur': `A torn tuft matching ${firstMurderer}'s pelt clings to elder-den brambles.`
     };
     addNote(notesByEvidence[label]);
@@ -1048,7 +1046,7 @@ function buildSuspectBoard() {
         return;
     }
     const status = game.suspectStatus || {};
-    const used = game.alibiUsed || {};
+    const alibiSpent = Boolean(game.alibiUsed);
     cast.forEach((cat) => {
         const row = document.createElement('div');
         row.className = `suspect-row ${status[cat.name] || ''}`;
@@ -1086,14 +1084,15 @@ function buildSuspectBoard() {
 
         const alibiBtn = document.createElement('button');
         alibiBtn.type = 'button';
-        alibiBtn.textContent = used[cat.name] ? 'Alibi seen' : 'Alibi';
-        alibiBtn.disabled = Boolean(used[cat.name]);
+        alibiBtn.textContent = 'Alibi';
+        alibiBtn.disabled = alibiSpent;
+        alibiBtn.title = alibiSpent ? 'You only get one alibi check per game.' : 'Reveal what this cat says they were doing.';
         alibiBtn.addEventListener('click', (event) => {
             event.preventDefault();
-            if (game.alibiUsed[cat.name]) {
+            if (game.alibiUsed) {
                 return;
             }
-            game.alibiUsed[cat.name] = true;
+            game.alibiUsed = true;
             const text = alibiFor(cat.name);
             addNote(`Alibi for ${cat.name}: ${text}`);
             setMessage(`${cat.name}'s alibi`, text);
