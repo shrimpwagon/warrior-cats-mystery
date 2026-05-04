@@ -25,6 +25,8 @@ const huntScene = document.getElementById('huntScene');
 const murderCutscene = document.getElementById('murderCutscene');
 const playOverlay = document.getElementById('playOverlay');
 const playBtn = document.getElementById('playBtn');
+const instructionsBtn = document.getElementById('instructionsBtn');
+const instructionsDialog = document.getElementById('instructions');
 const overlayText = playOverlay.querySelector('p');
 const pcModeBtn = document.getElementById('pcModeBtn');
 const mobileModeBtn = document.getElementById('mobileModeBtn');
@@ -1544,6 +1546,7 @@ playBtn.addEventListener('click', () => {
     }
     startGame();
 });
+instructionsBtn.addEventListener('click', () => instructionsDialog.showModal());
 restartBtn.addEventListener('click', () => resetGame(true));
 
 mobileControls.querySelectorAll('.mobile-key').forEach((button) => {

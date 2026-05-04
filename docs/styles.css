@@ -1155,6 +1155,46 @@ dialog header {
     font-size: 1.35rem;
 }
 
+#instructionsBtn {
+    display: block;
+    margin: 10px auto 0;
+    min-width: 180px;
+    background: rgba(7, 14, 20, 0.72);
+    color: #cceeff;
+    border: 1px solid rgba(204, 238, 255, 0.32);
+}
+
+.instructions-body {
+    max-height: 60vh;
+    overflow-y: auto;
+    line-height: 1.5;
+}
+
+.instructions-body h3 {
+    margin: 14px 0 6px;
+    color: #f0e3a8;
+}
+
+.instructions-body h3:first-child {
+    margin-top: 0;
+}
+
+.instructions-body ul {
+    margin: 0 0 4px;
+    padding-left: 18px;
+}
+
+.instructions-body li {
+    margin-bottom: 4px;
+}
+
+.instructions-body code {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 0.9em;
+}
+
 .control-choice {
     position: relative;
     display: inline-flex;

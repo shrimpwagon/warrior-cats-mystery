@@ -98,8 +98,44 @@
                     <button id="mobileModeBtn" type="button">Mobile</button>
                 </div>
                 <button id="playBtn" type="button">Start</button>
+                <button id="instructionsBtn" type="button">Instructions</button>
             </div>
         </div>
+        <dialog id="instructions">
+            <form method="dialog">
+                <header>
+                    <h2>How to play Moonclan Mystery</h2>
+                    <button type="submit">Close</button>
+                </header>
+                <div class="instructions-body">
+                    <h3>What you are doing</h3>
+                    <p>You are Bramblepaw, a Moonclan apprentice. A warrior named Willowfur has been murdered. Find the killer before Day 5 ends. Solve the mystery and you become a warrior, then live the rest of your life in the clan.</p>
+
+                    <h3>How to play</h3>
+                    <ul>
+                        <li>PC: <code>←</code> <code>→</code> or <code>A</code> <code>D</code> to move, <code>Space</code> / <code>W</code> / <code>↑</code> to jump, <code>↓</code> or <code>S</code> to catch prey while hunting.</li>
+                        <li>Mobile: pick <strong>Mobile</strong> on the title screen, then use the on-screen arrows.</li>
+                        <li>Click cats, dens, evidence, area buttons, and story buttons to interact.</li>
+                        <li>Open the <strong>Notebook</strong> (top right) any time to review your clues.</li>
+                    </ul>
+
+                    <h3>Where you are</h3>
+                    <ul>
+                        <li><strong>Moonclan camp:</strong> Highrock, Leader Den, Nursery, Warrior Den, Elder Den, Medicine Den.</li>
+                        <li><strong>After solving the murder:</strong> hunting grounds, fighting grounds, borders, the Sunclan border, Gatherings, and the Moonpool open up.</li>
+                        <li>Sleeping in the Warrior Den (after you become a warrior) advances time to the next day.</li>
+                    </ul>
+
+                    <h3>How to find clues</h3>
+                    <ul>
+                        <li>Click each Moonclan cat in camp to question them. Their dialogue may reveal a clue.</li>
+                        <li>Watch the ground for three small pieces of evidence: golden <strong>pine resin</strong>, dark <strong>muddy pawprints</strong>, and a tuft of <strong>torn fur</strong> on the brambles. Click each one.</li>
+                        <li>Collect <strong>6 clues</strong> in total. Once you have them all, the <strong>Solve</strong> buttons appear so you can accuse the murderer.</li>
+                        <li>Choose carefully: a wrong accusation, or running out of days, ends the game.</li>
+                    </ul>
+                </div>
+            </form>
+        </dialog>
         <div id="mobileControls" class="mobile-controls" hidden aria-label="Mobile movement controls">
             <button class="mobile-key up" type="button" data-key="ArrowUp">↑</button>
             <button class="mobile-key left" type="button" data-key="ArrowLeft">←</button>
