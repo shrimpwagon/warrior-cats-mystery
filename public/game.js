@@ -1728,16 +1728,19 @@ function enemyBattleTurn() {
     if (!b || b.ended) {
         return;
     }
-    const lowHp = b.enemyHp <= stats.enemyMaxHp * 0.35;
-    const heal = lowHp && Math.random() < 0.7;
+    const lowHp = b.enemyHp <= stats.enemyMaxHp * 0.25;
+    const heal = lowHp && Math.random() < 0.5;
     if (heal) {
         b.enemyHp = Math.min(stats.enemyMaxHp, b.enemyHp + stats.enemyHeal);
         playBattleAnimation('enemy', 'heal');
         setMessage('Battle', `Reedpaw licks his wounds and recovers ${stats.enemyHeal} health.`);
     } else {
-        b.playerHp -= stats.enemyDmg;
+        const damage = lowHp ? stats.enemyDmg + 1 : stats.enemyDmg;
+        b.playerHp -= damage;
         playBattleAnimation('player', 'scratch');
-        setMessage('Battle', `Reedpaw rakes his claws across you for ${stats.enemyDmg} damage.`);
+        setMessage('Battle', lowHp
+            ? `Cornered, Reedpaw lashes out with everything he has for ${damage} damage!`
+            : `Reedpaw rakes his claws across you for ${damage} damage.`);
     }
     b.turn = 'player';
     renderBattleUI();
