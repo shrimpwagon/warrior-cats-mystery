@@ -1037,6 +1037,23 @@ function renderCats() {
     }
 
     if (game.currentArea === 'hunting') {
+        const grave = document.createElement('button');
+        grave.type = 'button';
+        grave.className = 'willowfur-grave';
+        grave.style.left = '180px';
+        grave.style.bottom = `${groundY}px`;
+        grave.innerHTML = '<span class="grave-stone"></span><span class="grave-flower"></span><span class="grave-name">Willowfur</span>';
+        grave.addEventListener('click', () => {
+            setMessage("Willowfur's grave", rotatingText('willowfur-grave', [
+                'A flat stone marks where Willowfur rests. A bright flower has been laid on top.',
+                'You bow your head. The forest is gentler here.',
+                'Sorreltail must visit too — the stone is brushed clean.',
+                'A breeze stirs the petals. It almost feels like a purr.',
+                "Willowfur's name is etched lightly into the stone."
+            ]));
+        });
+        npcLayer.appendChild(grave);
+
         if (shouldShowLivingCat('Brindleleaf')) {
             addNpc('Brindleleaf', 'Warrior', 760, groundY, '#a76d3f', '#4d2d1c', () => setMessage('Brindleleaf (Tom)', rotatingText('Brindleleaf', ['Stay downwind of the mouse path.', 'The river is too deep to swim.', 'Ferns hide both prey and trouble.'])));
         }
