@@ -1448,12 +1448,7 @@ function speak(cat) {
         } else if (trustLvl >= 3 && friendlyLines[cat.name]) {
             pool = friendlyLines[cat.name];
         } else {
-            const fallback = postSolveLine(cat.name) || 'They flick their tail in greeting.';
-            pool = [
-                fallback,
-                'The camp feels different today.',
-                'Keep your ears open. Every day changes the forest.'
-            ];
+            pool = postSolvePool(cat.name);
         }
         const trust = ` Trust ${trustLvl}/3.`;
         setMessage(`${cat.name}, ${cat.rank} (${cat.gender})`, `${rotatingText(`${cat.name}-t${trustLvl}`, pool)}${trust}`);
@@ -1824,7 +1819,12 @@ function talkInsideDen(name) {
         Snowkit: [
             'Snowkit is curled tight in the moss, breathing slow and steady.',
             'Their tiny paws twitch as they chase a mouse in their dream.',
-            'A faint squeak escapes them, then silence again.'
+            'A faint squeak escapes them, then silence again.',
+            'Snowkit shifts a little, snuggling deeper into the bracken.',
+            'A soft purr rumbles through Snowkit, even in sleep.',
+            'Snowkit is so small the moss almost swallows them.',
+            'Their whiskers twitch, then settle. Whatever dream it was, it passed.',
+            "Snowkit's ear flicks, brushed by a passing breeze."
         ],
         Birchstep: [
             'Birchstep stretches and yawns. "Long patrol earlier. The wind kept shifting."',
@@ -1839,22 +1839,42 @@ function talkInsideDen(name) {
         Oakwhisker: [
             'Oakwhisker rasps, "An exiled cat can still find a path back through anger."',
             'Oakwhisker chuckles. "I remember when these stones were warmer in summer. The forest forgets nothing."',
-            'Oakwhisker shifts in the leaves. "Listen more than you speak, young one. Stories live in old bones."'
+            'Oakwhisker shifts in the leaves. "Listen more than you speak, young one. Stories live in old bones."',
+            'Oakwhisker scratches behind his ear. "I outlived three deputies. Almost a fourth."',
+            'Oakwhisker says, "When I was your age, I caught a fox on the river path. Almost. Mostly."',
+            'Oakwhisker yawns. "Wake me when the prey runs at dawn. Or do not. I will sleep through it."',
+            'Oakwhisker murmurs, "Tell Snowkit the story of the great storm when she is older."',
+            'Oakwhisker says, "Time slows in the elder den. Visit more, warrior."'
         ],
         Rosesong: [
             'Rosesong sorts herbs. "The Moonpool will show what the living miss."',
             'Rosesong holds out a sprig of catmint. "If a cough comes, find me before sunset."',
-            'Rosesong studies you a moment. "Your spirit feels strong today. Hold onto that."'
+            'Rosesong studies you a moment. "Your spirit feels strong today. Hold onto that."',
+            'Rosesong stirs a poultice. "Marigold and yarrow — sting, then mend."',
+            'Rosesong says, "Mosspaw is a quick study. The clan is lucky."',
+            'Rosesong whispers, "Starclan walked through my dream last night."',
+            'Rosesong glances toward the nursery. "Snowkit will need watching when she wakes. So small."',
+            'Rosesong dips her head. "Bring me word if anyone takes ill, however small."'
         ],
         Mosspaw: [
             'Mosspaw bundles dried marigold leaves. "These are for scratches. I packed them this morning."',
             'Mosspaw says, "Rosesong is teaching me which herbs grow near the river stones."',
-            'Mosspaw whispers, "Sometimes I dream of Starclan. Rosesong says it is a good sign."'
+            'Mosspaw whispers, "Sometimes I dream of Starclan. Rosesong says it is a good sign."',
+            'Mosspaw sniffs at a sprig. "Catmint, finally fresh again."',
+            'Mosspaw says, "I want to visit the Moonpool one day with Rosesong."',
+            'Mosspaw stretches. "Carrying herbs all day is harder than warrior training, I think."',
+            'Mosspaw murmurs, "Snowkit had a sniffle. I made her a small bundle of tansy."',
+            'Mosspaw says, "If anyone is hurt, I can patch them up. Just ask."'
         ],
         Mossleaf: [
             'Mossleaf grinds yarrow with a smooth stone. "This is for poison and bad bellies."',
-            'Mossleaf nods. "I have my full medicine name now. Rosesong and I split the patrols of herbs."',
-            'Mossleaf studies you. "Your scent is a little tense. Rest, warrior."'
+            'Mossleaf nods. "I have my full medicine name now. Rosesong and I split the herb patrols."',
+            'Mossleaf studies you. "Your scent is a little tense. Rest, warrior."',
+            'Mossleaf hangs catmint to dry. "The kits will need this in leafbare."',
+            'Mossleaf says, "My first dream as Mossleaf was of Willowfur. She blessed my new name."',
+            'Mossleaf murmurs, "Rosesong says I am ready for the Moonpool ceremonies."',
+            'Mossleaf checks her supplies. "Cobweb, marigold, tansy — all stocked."',
+            'Mossleaf dips her head. "If any cat is hurt, my paws are quick."'
         ]
     };
     const fullCat = cast.find((cat) => cat.name === name) || extraCats[name];
@@ -2631,28 +2651,124 @@ function handlePatrolDeath(name) {
     renderDeputyActions();
 }
 
-function postSolveLine(name) {
+function postSolvePool(name) {
     if (name === 'Ashfall') {
         if (firstMurderer === 'Pinefoot') {
-            return 'Ashfall lowers his head. "I still feel Pinefoot beside me sometimes. The grief is heavy."';
+            return [
+                'Ashfall lowers his head. "I still feel Pinefoot beside me sometimes. The grief is heavy."',
+                'Ashfall stares at the empty nest. "I keep listening for her purr."',
+                'Ashfall says quietly, "I will keep being deputy. The clan still needs me."',
+                'Ashfall murmurs, "Some nights I dream of Pinefoot before the dark took her."',
+                `Ashfall says, "${warriorName()}, you have been a kind shoulder. Thank you."`,
+                'Ashfall watches the nursery. "Kits remind me of better days."',
+                'Ashfall says, "The patrols come back tired. I am proud of them."',
+                'Ashfall flicks his tail. "Tomorrow I will run the dawn patrol myself."'
+            ];
         }
-        return 'Ashfall dips his head. "I will be a steady deputy for as long as the clan needs me."';
+        return [
+            'Ashfall dips his head. "I will be a steady deputy for as long as the clan needs me."',
+            'Ashfall says, "Pinefoot says hello. She is sharpening claws by the barrier."',
+            'Ashfall watches the apprentices. "They remind me of when I was a paw."',
+            'Ashfall stretches. "A long patrol clears the head."',
+            'Ashfall murmurs, "The clan moves on. That is good."',
+            'Ashfall says, "Bring me word if you spot anything strange at the borders."',
+            'Ashfall purrs softly. "Pinefoot brought back catmint this morning. Rosesong was thrilled."',
+            'Ashfall flicks his ear. "Dawn patrols this moon — I will lead them."'
+        ];
     }
-    const pastTenseSpeakers = {
-        Mistclaw: 'Mistclaw murmurs, "I still wonder how it all unraveled. Willowfur deserved more."',
-        Brindleleaf: 'Brindleleaf says, "Some moons I dream about Willowfur. The clan remembers her."',
-        Sorreltail: 'Sorreltail glances at the prey-pile. "Willowfur loved a fresh thrush. I leave one out for her sometimes."'
+    const pools = {
+        Whiskerstar: [
+            'Whiskerstar paces near Highrock. "The forest grows quieter every season."',
+            'Whiskerstar says, "Lead the patrols well. Ashfall is a good deputy."',
+            'Whiskerstar studies the camp. "Every nest is full again. That gives me peace."',
+            'Whiskerstar murmurs, "Starclan watches over us all."',
+            `Whiskerstar dips her head. "You have grown into your warrior name, ${warriorName()}."`,
+            'Whiskerstar says, "Rest when you can. The clan needs you sharp."',
+            'Whiskerstar watches the kits play. "They are why we hold the borders."',
+            'Whiskerstar adds, "Tomorrow may bring trials. Be ready, but not afraid."'
+        ],
+        Mistclaw: [
+            'Mistclaw murmurs, "I still wonder how it all unraveled. Willowfur deserved more."',
+            'Mistclaw says, "The hunting paths have been kind this moon."',
+            'Mistclaw flicks his ear. "Want to spar later? I am rusty."',
+            'Mistclaw nods. "I patrol well with you. We make a good pair."',
+            'Mistclaw stretches. "Sunhigh always brings the sleepy mice out."',
+            'Mistclaw watches the borders. "Sunclan has been quiet. Suspiciously so."',
+            'Mistclaw says, "I dreamed of the Moonpool last night. Strange thoughts."',
+            'Mistclaw rests his tail on yours. "Glad you are here, friend."'
+        ],
+        Ravenstripe: [
+            'Ravenstripe stretches in a sunbeam. "Quiet days are a gift."',
+            'Ravenstripe huffs. "Reedpaw asked me to teach him a battle move. I might."',
+            'Ravenstripe says, "I will prowl the eastern edge tonight."',
+            'Ravenstripe watches the entrance. "I keep an eye on the camp during sunhigh."',
+            'Ravenstripe murmurs, "I do not love crowds, but I love this clan."',
+            'Ravenstripe says, "Hunt with me when you have time. The river path is best at dawn."',
+            'Ravenstripe yawns. "Old bones, even on a warrior."',
+            'Ravenstripe glances at you. "If you ever need a quiet ear, mine is open."'
+        ],
+        Brindleleaf: [
+            'Brindleleaf says, "Some moons I dream about Willowfur. The clan remembers her."',
+            'Brindleleaf nods to you. "The fern path is thick with prey this season."',
+            'Brindleleaf stretches. "Want to share fresh-kill at the prey-pile?"',
+            'Brindleleaf says, "Reedpaw will make a fine warrior soon."',
+            'Brindleleaf watches the sky. "The clouds say rain is coming."',
+            'Brindleleaf murmurs, "I patrol the elder den brambles every dawn now."',
+            'Brindleleaf says, "Oakwhisker told me a story about your kithood. Curious."',
+            'Brindleleaf grins. "If you ever need a hunting partner, I am here."'
+        ],
+        Cloudspark: [
+            'Cloudspark stares toward the river. "The borders feel calmer this moon."',
+            'Cloudspark says, "I caught a thrush bigger than my head this morning."',
+            'Cloudspark dips her head. "The kits asked me to play moss-ball. I obliged."',
+            'Cloudspark stretches. "Mistclaw and I trained at dawn. He is faster than he looks."',
+            'Cloudspark watches the nursery. "Snowkit is so still when she sleeps."',
+            'Cloudspark murmurs, "I would like to see the Moonpool one day."',
+            'Cloudspark says, "If a fox comes near our border, I will be the first to shout."',
+            'Cloudspark purrs. "Glad to share tongues with you."'
+        ],
+        Pinefoot: [
+            'Pinefoot says, "The barrier is holding. The clan is safe."',
+            'Pinefoot stretches. "Ashfall and I patrolled twice today. The borders are sharp."',
+            'Pinefoot watches the apprentices. "Reedpaw needs work on his stance."',
+            'Pinefoot says, "I taught a battle move at sunhigh. Fernpaw learned it cold."',
+            'Pinefoot nods. "Birchstep brought new branches for the barrier."',
+            'Pinefoot murmurs, "Dawn patrols are my favorite. Quiet woods, good thinking."',
+            'Pinefoot says, "If trouble comes, I will be the first claw out."',
+            'Pinefoot purrs. "Glad to call you a clanmate."'
+        ],
+        Sorreltail: [
+            'Sorreltail glances at the prey-pile. "Willowfur loved a fresh thrush. I leave one out for her sometimes."',
+            'Sorreltail says, "I caught two voles this morning. Want to share?"',
+            'Sorreltail stretches. "The river path was quiet. No fox prints."',
+            `Sorreltail dips her head. "Good day, ${warriorName()}."`,
+            'Sorreltail watches Cloudspark. "She is patient with the kits."',
+            'Sorreltail murmurs, "The medicine den smells like marigold today."',
+            'Sorreltail says, "If you bring me prey, I will share a story."',
+            'Sorreltail says, "Some moons feel longer than others. This one is gentle."'
+        ],
+        Birchstep: [
+            'Birchstep stretches. "Long patrol earlier. The wind kept shifting."',
+            'Birchstep flicks an ear. "Reedpaw and Fernpaw are quick studies. The clan is in good paws."',
+            'Birchstep says, "I caught a fox scent near the old pine. Worth keeping eyes open."',
+            'Birchstep watches you. "Glad you came to the den. Quiet here today."',
+            'Birchstep murmurs, "Hollyfoot and I split dawn patrols this moon."',
+            'Birchstep says, "I will bring fresh moss for the nests at sunset."',
+            'Birchstep yawns. "Even warriors deserve a nap now and then."',
+            'Birchstep dips his head. "Honor the warrior code."'
+        ],
+        Hollyfoot: [
+            'Hollyfoot grooms her dark pelt. "A clean coat is a quiet hunter."',
+            'Hollyfoot nods. "I prefer fighting at dusk. The shadows do half the work."',
+            'Hollyfoot watches the entrance with one half-open eye.',
+            'Hollyfoot says, "Birchstep is steady. The borders feel safer with him."',
+            'Hollyfoot murmurs, "I dreamed of starlight on the river. Strange dream."',
+            'Hollyfoot says, "If trouble comes from Sunclan, I will know first."',
+            'Hollyfoot stretches. "I almost caught a hare today. Almost."',
+            'Hollyfoot purrs softly. "Sit with me a while if you like."'
+        ]
     };
-    if (pastTenseSpeakers[name]) {
-        return pastTenseSpeakers[name];
-    }
-    const neutral = {
-        Whiskerstar: 'Whiskerstar paces near Highrock. "The forest grows quieter every season."',
-        Ravenstripe: 'Ravenstripe stretches in a sunbeam. "Quiet days are a gift."',
-        Cloudspark: 'Cloudspark stares toward the river. "The borders feel calmer this moon."',
-        Pinefoot: 'Pinefoot says, "The barrier is holding. The clan is safe."'
-    };
-    return neutral[name] || `${name} flicks their tail in greeting.`;
+    return pools[name] || [`${name} flicks their tail in greeting.`];
 }
 
 function pityLineFor(name) {
