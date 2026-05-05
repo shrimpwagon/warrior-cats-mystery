@@ -1243,7 +1243,7 @@ function speak(cat) {
             game.trustReachedDay[cat.name] = game.day;
         }
         if (game.preyInMouth) {
-            givePrey(cat.name);
+            offerPreyToCat(cat);
             return;
         }
         if (canMateWith(cat) && game.rose && trustFor(cat.name) >= 3 && !game.mate) {
@@ -1705,10 +1705,6 @@ function visitArea(area) {
             const sleepLabel = game.ghostMode ? 'Drift Until Dusk' : 'Sleep in Warrior Den';
             accusePanel.innerHTML = `<button id="sleepBtn" type="button">${sleepLabel}</button>`;
             document.getElementById('sleepBtn').addEventListener('click', sleepInWarriorDen);
-            if (!game.ghostMode && game.preyInMouth) {
-                accusePanel.insertAdjacentHTML('beforeend', '<button id="givePreyCampBtn" type="button">Give Prey to Sorreltail</button>');
-                document.getElementById('givePreyCampBtn').addEventListener('click', () => givePrey('Sorreltail'));
-            }
             if (!game.ghostMode && game.mate === 'Smudge' && !game.kittypetMateRevealed) {
                 accusePanel.insertAdjacentHTML('beforeend', '<button id="tellClanBtn" type="button">Tell the clan about Smudge</button>');
                 document.getElementById('tellClanBtn').addEventListener('click', tellClanAboutSmudge);
@@ -2041,6 +2037,23 @@ function catchMouse() {
         huntScene.classList.remove('mouse-ready', 'caught');
         setMessage('Hunting Grounds', 'You caught the mouse and hold it carefully in your mouth.');
     }, 900);
+}
+
+function offerPreyToCat(cat) {
+    if (!game.preyInMouth) {
+        return;
+    }
+    const previousPanel = accusePanel.innerHTML;
+    accusePanel.innerHTML = '<button id="preyYesBtn" type="button">Yes, give prey</button><button id="preyNoBtn" type="button">No, keep it</button>';
+    document.getElementById('preyYesBtn').addEventListener('click', () => {
+        accusePanel.innerHTML = previousPanel;
+        givePrey(cat.name);
+    });
+    document.getElementById('preyNoBtn').addEventListener('click', () => {
+        accusePanel.innerHTML = previousPanel;
+        setMessage(`${cat.name} (${cat.gender})`, `${cat.name} eyes the prey in your mouth, but you keep it for now.`);
+    });
+    setMessage(`${cat.name} (${cat.gender})`, `Do you want to give the prey to ${cat.name}?`);
 }
 
 function givePrey(name = 'Sorreltail') {
