@@ -40,6 +40,46 @@ const genderBtn = document.getElementById('genderBtn');
 const furBush = document.getElementById('furBush');
 const furTuft = document.getElementById('furTuft');
 const suspectBoard = document.getElementById('suspectBoard');
+const preyPile = document.getElementById('preyPile');
+const preyPileLabel = document.getElementById('preyPileLabel');
+
+const PREY_PILE_MAX = 30;
+
+function updatePreyPileLabel() {
+    if (!preyPileLabel) return;
+    preyPileLabel.textContent = game?.preyPile != null ? `${game.preyPile}/${PREY_PILE_MAX}` : '';
+}
+
+function preyPileClick() {
+    if (!game?.started) return;
+    if (game.ghostMode) {
+        setMessage('Prey Pile', 'Your starry paws drift through the prey-pile. The living tend it now.');
+        return;
+    }
+    if (!game.preyInMouth) {
+        setMessage('Prey Pile', `The prey-pile holds ${game.preyPile}/${PREY_PILE_MAX} fresh-kill.${game.preyPile >= PREY_PILE_MAX ? ' It is overflowing.' : ''}`);
+        return;
+    }
+    if (game.preyPile >= PREY_PILE_MAX) {
+        setMessage('Prey Pile', 'The prey-pile is overflowing. Save the prey for someone hungry.');
+        return;
+    }
+    accusePanel.innerHTML = '<button id="dropPreyYes" type="button">Yes, add to pile</button><button id="dropPreyNo" type="button">No, keep it</button>';
+    document.getElementById('dropPreyYes').addEventListener('click', () => {
+        game.preyInMouth = false;
+        game.preyPile = Math.min(PREY_PILE_MAX, game.preyPile + 1);
+        addNote(`You added a piece of prey to the pile. Now ${game.preyPile}/${PREY_PILE_MAX} fresh-kill.`);
+        setMessage('Prey Pile', `You drop the prey on the pile. ${game.preyPile}/${PREY_PILE_MAX}.${game.preyPile >= PREY_PILE_MAX ? ' The pile is overflowing.' : ''}`);
+        accusePanel.innerHTML = '';
+        updatePreyPileLabel();
+        updateHud();
+    });
+    document.getElementById('dropPreyNo').addEventListener('click', () => {
+        accusePanel.innerHTML = '';
+        setMessage('Prey Pile', 'You keep the prey for now.');
+    });
+    setMessage('Prey Pile', 'Drop the prey onto the pile?');
+}
 
 const worldWidth = 3200;
 const groundY = 90;
@@ -580,7 +620,8 @@ function resetGame(showOverlay = true) {
             Rogue: { maxHp: 60, dmg: 19, heal: 20, wins: 0 }
         },
         rogueDefeated: false,
-        patrolDeaths: []
+        patrolDeaths: [],
+        preyPile: 10
     };
     playerState.x = 120;
     playerState.y = 0;
@@ -749,6 +790,7 @@ function renderAll() {
     if (inventoryBtn) {
         inventoryBtn.hidden = !game.firstSolved;
     }
+    updatePreyPileLabel();
     renderCats();
     renderAreas();
     updateHud();
@@ -918,12 +960,7 @@ function renderCats() {
                 return;
             }
             if (game.mate === 'Princess') {
-                setMessage('Princess (She-cat, your mate)', rotatingText('PrincessMate', [
-                    'Princess purrs against your side. "I miss you when the twolegs lock me indoors at night."',
-                    'Princess whispers, "I told the twolegs about you, but they only laughed."',
-                    'Princess butts her head into your shoulder. "Stay a little longer."',
-                    'Princess says, "Tell me what the camp smells like today. I want to picture it."'
-                ]));
+                setMessage('Princess (She-cat, your mate)', rotatingText('mate-Princess', mateDialogue('Princess')));
                 return;
             }
             game.smudgeClicks = (game.smudgeClicks || 0) + 1;
@@ -1434,7 +1471,8 @@ function speak(cat) {
             return;
         }
         if (cat.name === game.mate) {
-            setMessage(`${cat.name} (${cat.gender})`, `${cat.name} purrs. "The clan feels safer with you beside me."`);
+            const lines = mateDialogue(cat.name);
+            setMessage(`${cat.name} (${cat.gender}, your mate)`, rotatingText(`mate-${cat.name}`, lines));
             return;
         }
         if (game.deputyDay === game.day && cat.name !== 'Ashstar') {
@@ -1677,7 +1715,9 @@ function accuse(name) {
 
 function endInvestigationDay() {
     game.day += 1;
+    decayPreyPile();
     updateHud();
+    updatePreyPileLabel();
     if (game.day > game.firstLimit) {
         showLoss('You took too long to find the murderer.');
         return;
@@ -2116,6 +2156,18 @@ function rand(min, max) {
     return min + Math.floor(Math.random() * (max - min + 1));
 }
 
+function decayPreyPile() {
+    if (game?.preyPile == null) return;
+    game.preyPile = Math.max(0, game.preyPile - 3);
+}
+
+function rollPatrolPrey(catCount) {
+    if (Math.random() < 0.25) return 0;
+    const ranges = { 1: [1, 3], 2: [2, 4], 3: [3, 5] };
+    const range = ranges[catCount] || [0, 0];
+    return rand(range[0], range[1]);
+}
+
 function endBattle(result) {
     const stats = game.battleStats;
     const b = game.battle;
@@ -2410,6 +2462,8 @@ function sleepInWarriorDen() {
     }
     bumpDayTimer();
     game.day += 1;
+    decayPreyPile();
+    updatePreyPileLabel();
     if (!game.ghostMode && game.day >= 45) {
         endOldAge();
         return;
@@ -2653,6 +2707,92 @@ function handlePatrolDeath(name) {
     renderDeputyActions();
 }
 
+function mateDialogue(name) {
+    const map = {
+        Mistclaw: [
+            'Mistclaw bumps your shoulder. "Best decision I ever made — sharing a nest with you."',
+            'Mistclaw purrs. "I saved a thrush for you on the prey-pile."',
+            'Mistclaw says, "The borders feel safer when we patrol together."',
+            'Mistclaw leans against you. "You are my favorite warrior in any clan."',
+            'Mistclaw murmurs, "Tell me about your dream last night."',
+            'Mistclaw flicks his tail. "Walk to the river with me at sunhigh?"',
+            'Mistclaw says softly, "I am proud of you. Every day."'
+        ],
+        Brindleleaf: [
+            'Brindleleaf grins. "I knew you would say yes one day. Glad I waited."',
+            'Brindleleaf says, "Hunt with me at moonrise. The fern path is mine."',
+            'Brindleleaf nudges your nose. "I dreamed about our future kits."',
+            'Brindleleaf says, "Whatever the clan throws at us, we handle it together."',
+            'Brindleleaf curls his tail around yours. "I am yours."',
+            'Brindleleaf says, "Bring back a vole for me and I will brag about you all day."',
+            'Brindleleaf murmurs, "Stay close tonight. The moon feels heavy."'
+        ],
+        Cloudspark: [
+            'Cloudspark nuzzles you. "Some warriors are clouds. You are the sky."',
+            'Cloudspark whispers, "I sleep better with you near."',
+            'Cloudspark says, "I would chase any fox from this camp for you."',
+            'Cloudspark purrs. "Tell me a story while I groom your fur."',
+            'Cloudspark leans her head on yours. "We are a good pair."',
+            'Cloudspark says, "Promise me you will not take risks alone."',
+            'Cloudspark says quietly, "Every dawn I wake glad you are my mate."'
+        ],
+        Sorreltail: [
+            'Sorreltail laughs. "Look at us. Mates. The clan still teases me about it."',
+            'Sorreltail brushes her tail under your chin. "Caught a thrush. Want to share?"',
+            'Sorreltail says, "If you ever need a quiet ear, I am here."',
+            'Sorreltail purrs. "I picked the best mate. Tell anyone who asks."',
+            'Sorreltail says, "Walk the river with me. I want to see the dragonflies."',
+            'Sorreltail murmurs, "The kits will love you when they come."',
+            'Sorreltail nuzzles you. "Stay a heartbeat longer."'
+        ],
+        Pinefoot: [
+            'Pinefoot rests her head against yours. "I will always have your back, warrior."',
+            'Pinefoot says, "We patrol the barrier well together."',
+            'Pinefoot murmurs, "I never thought I would say this — but you are my world."',
+            'Pinefoot purrs. "If trouble comes, I am the first claw out beside you."',
+            'Pinefoot says, "Bring me a story from the borders tonight."',
+            'Pinefoot says quietly, "I am proud of the cat you are."',
+            'Pinefoot whispers, "Every season with you is greenleaf."'
+        ],
+        Birchstep: [
+            'Birchstep brushes his tail along yours. "Best moon of my life when you said yes."',
+            'Birchstep says, "I sleep easier with you in the warrior den."',
+            'Birchstep murmurs, "Patrol the river path with me at dusk?"',
+            'Birchstep purrs. "I caught a vole — your favorite, I think."',
+            'Birchstep nudges your shoulder. "I am proud of you, warrior."',
+            'Birchstep says, "Tell me what you want for the future. I want all of it with you."',
+            'Birchstep says softly, "Stay close. The wind is cold tonight."'
+        ],
+        Hollyfoot: [
+            'Hollyfoot leans into your shoulder. "We hold this clan together, you and I."',
+            'Hollyfoot whispers, "You make the warrior code feel less heavy."',
+            'Hollyfoot says, "I trained at dawn. I want to spar with you next."',
+            'Hollyfoot purrs. "Some bonds keep a clan steady. Ours does."',
+            'Hollyfoot says, "If you ever doubt yourself, look at me. I do not."',
+            'Hollyfoot says softly, "Promise we always patrol home before nightfall."',
+            'Hollyfoot dips her head. "Glad to share a nest with you."'
+        ],
+        Princess: [
+            'Princess purrs against your side. "I miss you when the twolegs lock me indoors at night."',
+            'Princess whispers, "I told the twolegs about you, but they only laughed."',
+            'Princess butts her head into your shoulder. "Stay a little longer."',
+            'Princess says, "Tell me what the camp smells like today. I want to picture it."',
+            'Princess says, "Did you bring a thrush? My twolegs do not give me real prey."',
+            'Princess says, "I dreamed I was a warrior last night. It felt nice."',
+            'Princess murmurs, "I will sit on the fence every dusk hoping to see you."'
+        ]
+    };
+    return map[name] || [
+        `${name} purrs. "The clan feels safer with you beside me."`,
+        `${name} says, "Stay close tonight."`,
+        `${name} bumps your shoulder. "I am glad we are mates."`,
+        `${name} murmurs, "Tell me about your day."`,
+        `${name} says, "Walk with me at sunhigh."`,
+        `${name} dips their head. "I am proud of you."`,
+        `${name} purrs. "Best decision I ever made."`
+    ];
+}
+
 function postSolvePool(name) {
     if (name === 'Ashfall') {
         if (firstMurderer === 'Pinefoot') {
@@ -2830,8 +2970,21 @@ function resolvePatrol() {
         'quiet-border': 'a quiet border and newly marked stones',
         'abandoned-kit': 'nothing unusual, though the reeds were noisy'
     };
-    addNote(`${cats.join(', ')} returned from patrol with news: ${reports[outcome]}.`);
-    setMessage('Patrol Report', `${cats.join(', ')} report ${reports[outcome]}.`);
+    const preyCaught = rollPatrolPrey(cats.length);
+    let preyText = '';
+    if (preyCaught > 0) {
+        const before = game.preyPile;
+        game.preyPile = Math.min(PREY_PILE_MAX, game.preyPile + preyCaught);
+        const added = game.preyPile - before;
+        preyText = added > 0
+            ? ` They added ${added} prey to the pile (${game.preyPile}/${PREY_PILE_MAX}).`
+            : ' The prey-pile is overflowing, so the catch went to share around.';
+    } else {
+        preyText = ' They came back empty-pawed.';
+    }
+    addNote(`${cats.join(', ')} returned from patrol with news: ${reports[outcome]}.${preyText}`);
+    setMessage('Patrol Report', `${cats.join(', ')} report ${reports[outcome]}.${preyText}`);
+    updatePreyPileLabel();
     renderCats();
     renderDeputyActions();
 }
@@ -3173,6 +3326,9 @@ player.addEventListener('click', () => {
 });
 if (furTuft) {
     furTuft.addEventListener('click', inspectFurTuft);
+}
+if (preyPile) {
+    preyPile.addEventListener('click', preyPileClick);
 }
 
 document.querySelectorAll('.den').forEach((den) => {
