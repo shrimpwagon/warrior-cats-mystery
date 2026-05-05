@@ -92,7 +92,13 @@ function preyPileClick() {
         game.preyInMouth = false;
         game.preyPile = Math.min(PREY_PILE_MAX, game.preyPile + 1);
         addNote(`You added a piece of prey to the pile. Now ${game.preyPile}/${PREY_PILE_MAX} fresh-kill.`);
-        setMessage('Prey Pile', `You drop the prey on the pile. ${game.preyPile}/${PREY_PILE_MAX}.${game.preyPile >= PREY_PILE_MAX ? ' The pile is overflowing.' : ''}`);
+        let extra = '';
+        if (Math.random() < 0.4 && trustFor('Whiskerstar') < trustMax('Whiskerstar')) {
+            game.trust.Whiskerstar = trustFor('Whiskerstar') + 1;
+            addNote(`Whiskerstar noticed your contribution. Trust ${trustFor('Whiskerstar')}/${trustMax('Whiskerstar')}.`);
+            extra = ` Whiskerstar dips her head from across camp — trust ${trustFor('Whiskerstar')}/${trustMax('Whiskerstar')}.`;
+        }
+        setMessage('Prey Pile', `You drop the prey on the pile. ${game.preyPile}/${PREY_PILE_MAX}.${game.preyPile >= PREY_PILE_MAX ? ' The pile is overflowing.' : ''}${extra}`);
         accusePanel.innerHTML = '';
         updatePreyPileLabel();
         updateHud();
@@ -770,6 +776,10 @@ function addNote(note) {
     }
 }
 
+function trustMax(name) {
+    return name === 'Whiskerstar' ? 5 : 3;
+}
+
 function trustFor(name) {
     return game.trust[name] || 0;
 }
@@ -1182,11 +1192,11 @@ function renderCampKits() {
                 }
                 game.talkCounts = game.talkCounts || {};
                 game.talkCounts[name] = (game.talkCounts[name] || 0) + 1;
-                if (game.talkCounts[name] % 6 === 0 && trustFor(name) < 3) {
+                if (game.talkCounts[name] % 6 === 0 && trustFor(name) < trustMax(name)) {
                     game.trust[name] = trustFor(name) + 1;
-                    addNote(`${name} trust increased to ${trustFor(name)}/3 from spending time together.`);
+                    addNote(`${name} trust increased to ${trustFor(name)}/${trustMax(name)} from spending time together.`);
                 }
-                const trustLine = trustFor(name) > 0 ? ` Trust ${trustFor(name)}/3.` : '';
+                const trustLine = trustFor(name) > 0 ? ` Trust ${trustFor(name)}/${trustMax(name)}.` : '';
                 setMessage(`${name}${genderLabel}`, `${rotatingText(name, lines)}${trustLine}`);
                 return;
             }
@@ -1561,9 +1571,9 @@ function speak(cat) {
         game.talkCounts = game.talkCounts || {};
         game.trustReachedDay = game.trustReachedDay || {};
         game.talkCounts[cat.name] = (game.talkCounts[cat.name] || 0) + 1;
-        if (game.talkCounts[cat.name] % 6 === 0 && trustFor(cat.name) < 3) {
+        if (game.talkCounts[cat.name] % 6 === 0 && trustFor(cat.name) < trustMax(cat.name)) {
             game.trust[cat.name] = trustFor(cat.name) + 1;
-            addNote(`${cat.name} trust increased to ${trustFor(cat.name)}/3 from spending time together.`);
+            addNote(`${cat.name} trust increased to ${trustFor(cat.name)}/${trustMax(cat.name)} from spending time together.`);
         }
         if (trustFor(cat.name) >= 3 && game.trustReachedDay[cat.name] === undefined) {
             game.trustReachedDay[cat.name] = game.day;
@@ -1601,7 +1611,7 @@ function speak(cat) {
         } else {
             pool = postSolvePool(cat.name);
         }
-        const trust = ` Trust ${trustLvl}/3.`;
+        const trust = ` Trust ${trustLvl}/${trustMax(cat.name)}.`;
         setMessage(`${cat.name}, ${cat.rank} (${cat.gender})`, `${rotatingText(`${cat.name}-t${trustLvl}`, pool)}${trust}`);
         return;
     }
@@ -2594,11 +2604,11 @@ function givePrey(name = 'Sorreltail') {
         return;
     }
     game.preyInMouth = false;
-    game.trust[name] = Math.min(3, trustFor(name) + 1);
-    addNote(`${name} trust increased to ${trustFor(name)}/3.`);
+    game.trust[name] = Math.min(trustMax(name), trustFor(name) + 1);
+    addNote(`${name} trust increased to ${trustFor(name)}/${trustMax(name)}.`);
     const cat = cast.find((entry) => entry.name === name);
     const mateLine = cat && canMateWith(cat) ? ' A special rose can make you mates at 3/3.' : ' This cat can be your friend, but not your mate.';
-    setMessage(name, `${name} accepts the prey. Trust ${trustFor(name)}/3.${mateLine}`);
+    setMessage(name, `${name} accepts the prey. Trust ${trustFor(name)}/${trustMax(name)}.${mateLine}`);
     updateHud();
 }
 
