@@ -57,7 +57,31 @@ function preyPileClick() {
         return;
     }
     if (!game.preyInMouth) {
-        setMessage('Prey Pile', `The prey-pile holds ${game.preyPile}/${PREY_PILE_MAX} fresh-kill.${game.preyPile >= PREY_PILE_MAX ? ' It is overflowing.' : ''}`);
+        if (game.preyPile <= 0) {
+            setMessage('Prey Pile', 'The prey-pile is empty. The clan needs a new patrol.');
+            return;
+        }
+        accusePanel.innerHTML = '<button id="takePreyYes" type="button">Yes, take prey</button><button id="takePreyNo" type="button">No, leave it</button>';
+        document.getElementById('takePreyYes').addEventListener('click', () => {
+            if (game.preyPile <= 0) {
+                accusePanel.innerHTML = '';
+                setMessage('Prey Pile', 'The prey-pile is empty.');
+                return;
+            }
+            game.preyPile -= 1;
+            game.preyInMouth = true;
+            game.prey += 1;
+            addNote(`You took a piece of prey from the pile. ${game.preyPile}/${PREY_PILE_MAX} left.`);
+            setMessage('Prey Pile', `You pick a fresh mouse off the pile and carry it in your mouth. ${game.preyPile}/${PREY_PILE_MAX} left.`);
+            accusePanel.innerHTML = '';
+            updatePreyPileLabel();
+            updateHud();
+        });
+        document.getElementById('takePreyNo').addEventListener('click', () => {
+            accusePanel.innerHTML = '';
+            setMessage('Prey Pile', 'You leave the pile alone.');
+        });
+        setMessage('Prey Pile', `Take prey from the pile? It currently holds ${game.preyPile}/${PREY_PILE_MAX} fresh-kill.`);
         return;
     }
     if (game.preyPile >= PREY_PILE_MAX) {
