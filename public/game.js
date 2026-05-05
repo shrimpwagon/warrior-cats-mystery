@@ -665,7 +665,11 @@ function resetGame(showOverlay = true) {
         },
         rogueDefeated: false,
         patrolDeaths: [],
-        preyPile: 10
+        preyPile: 10,
+        sunclanState: 'aggressive',
+        sunclanProgress: 0,
+        dawnclanState: 'neutral',
+        dawnclanProgress: 0
     };
     playerState.x = 120;
     playerState.y = 0;
@@ -935,9 +939,9 @@ function renderCats() {
                 if (!cat) return;
                 addNpc(guest.name, cat.rank, x, groundY, cat.fur, cat.mark, () => setMessage(guest.name, `${guest.name} murmurs about the night sky and watches the leaders.`));
             } else if (guest.kind === 'dawnclan') {
-                addExtraNpc(guest.name, x, groundY, () => setMessage(guest.name, `${guest.name} of Dawnclan dips their head. "Dawnclan watches the same stars."`));
+                addExtraNpc(guest.name, x, groundY, () => clickOtherClanCat(guest.name, 'dawnclan'));
             } else {
-                addExtraNpc(guest.name, x, groundY, () => setMessage(guest.name, `${guest.name} keeps their tail close and listens.`));
+                addExtraNpc(guest.name, x, groundY, () => clickOtherClanCat(guest.name, 'sunclan'));
             }
         });
         renderGhostCats();
@@ -982,9 +986,9 @@ function renderCats() {
     }
 
     if (game.currentArea === 'sunclan') {
-        addExtraNpc('Nettleclaw', 760, groundY, () => setMessage('Nettleclaw (Tom)', 'Get out of Sunclan territory before I call the patrol.'));
-        addExtraNpc('Dawnpelt', 980, groundY, () => setMessage('Dawnpelt (She-cat)', 'Moonclan paws do not belong past the river.'));
-        addExtraNpc('Russetfang', 1210, groundY, () => setMessage('Russetfang (Tom)', 'Leave. This border is not yours.'));
+        addExtraNpc('Nettleclaw', 760, groundY, () => clickOtherClanCat('Nettleclaw', 'sunclan'));
+        addExtraNpc('Dawnpelt', 980, groundY, () => clickOtherClanCat('Dawnpelt', 'sunclan'));
+        addExtraNpc('Russetfang', 1210, groundY, () => clickOtherClanCat('Russetfang', 'sunclan'));
 
         const fence = document.createElement('div');
         fence.className = 'twoleg-fence';
@@ -1170,7 +1174,24 @@ function renderCampKits() {
                 `${name} dips their head. "Honor the warrior code."`
             ];
         }
-        addNpc(name, stage === 'warrior' ? 'Warrior' : stage === 'apprentice' ? 'Apprentice' : 'Kit', x, groundY, kit.fur, kit.mark, () => setMessage(`${name}${genderLabel}`, rotatingText(name, lines)));
+        addNpc(name, stage === 'warrior' ? 'Warrior' : stage === 'apprentice' ? 'Apprentice' : 'Kit', x, groundY, kit.fur, kit.mark, () => {
+            if (game.firstSolved && (stage === 'kit' || stage === 'apprentice')) {
+                if (game.preyInMouth) {
+                    offerPreyToCat({ name, rank: stage === 'kit' ? 'Kit' : 'Apprentice', gender: kit.gender || 'Unknown' });
+                    return;
+                }
+                game.talkCounts = game.talkCounts || {};
+                game.talkCounts[name] = (game.talkCounts[name] || 0) + 1;
+                if (game.talkCounts[name] % 6 === 0 && trustFor(name) < 3) {
+                    game.trust[name] = trustFor(name) + 1;
+                    addNote(`${name} trust increased to ${trustFor(name)}/3 from spending time together.`);
+                }
+                const trustLine = trustFor(name) > 0 ? ` Trust ${trustFor(name)}/3.` : '';
+                setMessage(`${name}${genderLabel}`, `${rotatingText(name, lines)}${trustLine}`);
+                return;
+            }
+            setMessage(`${name}${genderLabel}`, rotatingText(name, lines));
+        });
     });
 }
 
@@ -1885,6 +1906,17 @@ function enterDen(name) {
         sleepButton.addEventListener('click', sleepInWarriorDen);
         denActions.appendChild(sleepButton);
     }
+    if (name === 'Leader Den') {
+        const relationsButton = document.createElement('button');
+        relationsButton.type = 'button';
+        relationsButton.textContent = 'Clan relationships';
+        relationsButton.addEventListener('click', () => {
+            const sun = clanRelationLabel(game.sunclanState);
+            const dawn = clanRelationLabel(game.dawnclanState);
+            setMessage('Clan Relationships', `Sunclan: ${sun}. Dawnclan: ${dawn}. (Give prey or fight to shift relations — Dawnclan only at Gatherings.)`);
+        });
+        denActions.appendChild(relationsButton);
+    }
     setMessage(name, `You duck inside the ${name.toLowerCase()}.`);
 }
 
@@ -2248,6 +2280,101 @@ function rand(min, max) {
     return min + Math.floor(Math.random() * (max - min + 1));
 }
 
+const CLAN_FRIENDLY_LADDER = ['extremely-angry', 'aggressive', 'neutral', 'peaceful', 'good-friends'];
+
+function clanRelationLabel(state) {
+    return state.replace('-', ' ');
+}
+
+function bumpClanFriendly(clan) {
+    const stateKey = `${clan}State`;
+    const progKey = `${clan}Progress`;
+    game[progKey] = (game[progKey] || 0) + 1;
+    if (game[progKey] >= 3) {
+        game[progKey] = 0;
+        const i = CLAN_FRIENDLY_LADDER.indexOf(game[stateKey]);
+        if (i >= 0 && i < CLAN_FRIENDLY_LADDER.length - 1) {
+            game[stateKey] = CLAN_FRIENDLY_LADDER[i + 1];
+            addNote(`${clan === 'sunclan' ? 'Sunclan' : 'Dawnclan'} relations are now ${clanRelationLabel(game[stateKey])}.`);
+        }
+    }
+}
+
+function worsenClan(clan) {
+    const stateKey = `${clan}State`;
+    const map = {
+        'aggressive': 'extremely-angry',
+        'neutral': 'aggressive',
+        'peaceful': 'neutral',
+        'good-friends': 'peaceful'
+    };
+    if (map[game[stateKey]]) {
+        game[stateKey] = map[game[stateKey]];
+        game[`${clan}Progress`] = 0;
+        addNote(`${clan === 'sunclan' ? 'Sunclan' : 'Dawnclan'} relations worsened to ${clanRelationLabel(game[stateKey])}.`);
+    }
+}
+
+function clanSayLine(name, state) {
+    const lines = {
+        'extremely-angry': `${name} bristles, claws unsheathed. "Get away from us. NOW."`,
+        'aggressive': `${name} hisses. "L-l-leave Sunclan land. Y-you should not be here."`,
+        'neutral': `${name} eyes you carefully. "We are not enemies today. Speak."`,
+        'peaceful': `${name} dips their head. "Always good to see a Moonclan paw at our border."`,
+        'good-friends': `${name} purrs. "Friend! Sit a moment, share words."`
+    };
+    return lines[state] || `${name} watches you silently.`;
+}
+
+function offerPreyToOtherClan(name, clan) {
+    const previousPanel = accusePanel.innerHTML;
+    accusePanel.innerHTML = '<button id="otherPreyYes" type="button">Yes, give prey</button><button id="otherPreyNo" type="button">No, keep it</button>';
+    document.getElementById('otherPreyYes').addEventListener('click', () => {
+        game.preyInMouth = false;
+        bumpClanFriendly(clan);
+        const stateKey = `${clan}State`;
+        const stutterLine = game[stateKey] === 'aggressive'
+            ? `${name} stutters as they accept it. "T-t-thank you, Moonclan." Sunclan relations may soften.`
+            : `${name} accepts the prey. "Moonclan is generous today."`;
+        addNote(`You gave a piece of prey to ${name}.`);
+        setMessage(name, stutterLine);
+        accusePanel.innerHTML = previousPanel;
+        updateHud();
+    });
+    document.getElementById('otherPreyNo').addEventListener('click', () => {
+        accusePanel.innerHTML = previousPanel;
+        setMessage(name, `You decide to keep the prey for your own clan.`);
+    });
+    setMessage(name, `Give your prey to ${name} of ${clan === 'sunclan' ? 'Sunclan' : 'Dawnclan'}?`);
+}
+
+function fightOtherClanCat(name, clan) {
+    worsenClan(clan);
+    const stateKey = `${clan}State`;
+    setMessage(name, `${name} hisses and claws back. ${clan === 'sunclan' ? 'Sunclan' : 'Dawnclan'} relations are now ${clanRelationLabel(game[stateKey])}.`);
+}
+
+function clickOtherClanCat(name, clan) {
+    if (game.ghostMode) {
+        setMessage(name, `${name} senses a starry presence and shivers. They cannot hear you.`);
+        return;
+    }
+    if (game.preyInMouth) {
+        offerPreyToOtherClan(name, clan);
+        return;
+    }
+    const state = game[`${clan}State`];
+    setMessage(`${name} (${clan === 'sunclan' ? 'Sunclan' : 'Dawnclan'} — ${clanRelationLabel(state)})`, clanSayLine(name, state));
+    accusePanel.innerHTML = `<button id="fightClanCatBtn" type="button">Fight ${name}</button><button id="leaveClanCatBtn" type="button">Walk away</button>`;
+    document.getElementById('fightClanCatBtn').addEventListener('click', () => {
+        accusePanel.innerHTML = '';
+        fightOtherClanCat(name, clan);
+    });
+    document.getElementById('leaveClanCatBtn').addEventListener('click', () => {
+        accusePanel.innerHTML = '';
+    });
+}
+
 function decayPreyPile() {
     if (game?.preyPile == null) return;
     game.preyPile = Math.max(0, game.preyPile - 3);
@@ -2539,7 +2666,10 @@ function canMateWith(cat) {
     if (!cat || cat.rank === 'Leader' || cat.rank === 'Deputy') {
         return false;
     }
-    if (cat.name === 'Pinefoot') {
+    if (cat.rank && (cat.rank.startsWith('Sunclan') || cat.rank.startsWith('Dawnclan'))) {
+        return false;
+    }
+    if (['Pinefoot', 'Whiskerstar', 'Ashfall', 'Ashstar'].includes(cat.name)) {
         return false;
     }
     if (!mateCandidates.has(cat.name)) {
