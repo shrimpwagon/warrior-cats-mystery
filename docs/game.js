@@ -490,7 +490,8 @@ function resetGame(showOverlay = true) {
             Ravenstripe: { maxHp: 55, dmg: 15, heal: 7, wins: 0 },
             Rogue: { maxHp: 60, dmg: 19, heal: 20, wins: 0 }
         },
-        rogueDefeated: false
+        rogueDefeated: false,
+        patrolDeaths: []
     };
     playerState.x = 120;
     playerState.y = 0;
@@ -979,6 +980,9 @@ function shouldShowLivingCat(name) {
     if (game.patrolPending && game.patrolPending.cats.includes(name)) {
         return false;
     }
+    if (game.patrolDeaths && game.patrolDeaths.some((c) => c.name === name)) {
+        return false;
+    }
     return true;
 }
 
@@ -1000,6 +1004,9 @@ function deadCats() {
     if (game.mateKilled && game.mate) {
         const mate = cast.find((cat) => cat.name === game.mate);
         dead.push({ name: game.mate, rank: 'Warrior', fur: mate?.fur || '#ddeaff', mark: mate?.mark || '#ffffff', homeScene: 'camp' });
+    }
+    if (game.patrolDeaths) {
+        game.patrolDeaths.forEach((c) => dead.push({ ...c, homeScene: c.homeScene || 'camp' }));
     }
     return dead;
 }
@@ -2285,13 +2292,13 @@ function organizePatrol() {
                 game.patrolSelected.push(name);
                 button.classList.add('selected');
             } else {
-                setMessage('Patrol', 'Only 3 cats can go on patrol.');
+                setMessage('Patrol', 'No more than 3 cats can go on a patrol.');
             }
         });
         picker.appendChild(button);
     });
     document.getElementById('sendPatrolBtn').addEventListener('click', sendPatrol);
-    setMessage('Deputy Duties', 'Choose exactly 3 cats for patrol.');
+    setMessage('Deputy Duties', 'Choose 1 to 3 cats for patrol. A solo patrol can end badly.');
 }
 
 function patrolOptions() {
@@ -2311,21 +2318,78 @@ function patrolOptions() {
 }
 
 function sendPatrol() {
-    if (game.patrolSelected.length !== 3) {
-        setMessage('Deputy Duties', 'Choose exactly 3 cats before sending the patrol.');
+    if (game.patrolSelected.length < 1 || game.patrolSelected.length > 3) {
+        setMessage('Deputy Duties', 'Choose 1 to 3 cats before sending the patrol.');
         return;
     }
     game.patrolPending = { cats: [...game.patrolSelected], reportDay: game.day + 1 };
     addNote(`${game.patrolSelected.join(', ')} left on patrol.`);
     accusePanel.innerHTML = '<button id="sleepBtn" type="button">Sleep in Warrior Den</button>';
     document.getElementById('sleepBtn').addEventListener('click', sleepInWarriorDen);
-    setMessage('Patrol', `${game.patrolSelected.join(', ')} head out. They will return tomorrow with news.`);
+    const warning = game.patrolSelected.length === 1
+        ? ' A lone patrol is a risky thing.'
+        : '';
+    setMessage('Patrol', `${game.patrolSelected.join(', ')} head out. They will return tomorrow with news.${warning}`);
     renderCats();
+}
+
+function findClanCatData(name) {
+    const c = cast.find((cat) => cat.name === name);
+    if (c) return c;
+    const allKits = [...(game.nurseryKitAges || []), ...(game.playerKits || [])];
+    for (const kit of allKits) {
+        const stage = growthStage(kit.bornDay);
+        const suffix = stage === 'warrior' ? 'heart' : stage === 'apprentice' ? 'paw' : 'kit';
+        if (`${kit.base}${suffix}` === name) {
+            return {
+                name,
+                rank: stage === 'warrior' ? 'Warrior' : stage === 'apprentice' ? 'Apprentice' : 'Kit',
+                fur: kit.fur,
+                mark: kit.mark,
+                gender: kit.gender
+            };
+        }
+    }
+    if (game.abandonedKit) {
+        const stage = game.abandonedKit.stage;
+        const suffix = stage === 'warrior' ? 'heart' : stage === 'apprentice' ? 'paw' : 'kit';
+        if (`River${suffix}` === name) {
+            return {
+                name,
+                rank: stage === 'warrior' ? 'Warrior' : 'Apprentice',
+                fur: '#8f8068',
+                mark: '#e1d3ae',
+                gender: game.abandonedKit.gender
+            };
+        }
+    }
+    return null;
+}
+
+function handlePatrolDeath(name) {
+    const info = findClanCatData(name) || { name, rank: 'Warrior', fur: '#9b7350', mark: '#5d3f2c' };
+    game.patrolDeaths = game.patrolDeaths || [];
+    game.patrolDeaths.push({
+        name: info.name || name,
+        rank: info.rank || 'Warrior',
+        fur: info.fur || '#9b7350',
+        mark: info.mark || '#5d3f2c',
+        gender: info.gender,
+        homeScene: 'camp'
+    });
+    addNote(`${name} did not return from the lone patrol. The forest swallowed them.`);
+    setMessage('Patrol Report', `${name} did not return from the patrol. The clan grieves. Their body was never found.`);
+    renderAll();
+    renderDeputyActions();
 }
 
 function resolvePatrol() {
     const cats = game.patrolPending.cats;
     game.patrolPending = null;
+    if (cats.length === 1 && Math.random() < 0.15) {
+        handlePatrolDeath(cats[0]);
+        return;
+    }
     const outcomes = ['sunclan-scent', 'fresh-prey', 'fox-track', 'quiet-border', 'abandoned-kit'];
     const outcome = outcomes[Math.floor(Math.random() * outcomes.length)];
     if (!game.abandonedKitFound && outcome === 'abandoned-kit') {
