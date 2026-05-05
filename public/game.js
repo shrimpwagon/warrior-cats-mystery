@@ -1101,18 +1101,30 @@ function renderGhostCats() {
     if (!game.ghostMode || game.currentArea === 'moonpool') {
         return;
     }
-    const placements = {
-        camp: [640, 1160, 1660, 2160],
-        borders: [690, 1320, 1880],
-        hunting: [820, 1640]
+    const ranges = {
+        camp: [560, 2500],
+        borders: [560, 1430],
+        hunting: [560, 2300]
     };
-    const xs = placements[game.currentArea];
-    if (!xs) {
+    const range = ranges[game.currentArea];
+    if (!range) {
         return;
     }
+    const [minX, maxX] = range;
     const sceneCats = deadCats().filter((cat) => cat.homeScene === game.currentArea);
-    sceneCats.slice(0, xs.length).forEach((cat, index) => {
-        addDeadNpc(cat, xs[index], groundY + 34 + (index % 2) * 22);
+    const slots = [];
+    for (let xs = minX; xs < maxX; xs += 220) {
+        slots.push(xs);
+    }
+    for (let i = slots.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [slots[i], slots[j]] = [slots[j], slots[i]];
+    }
+    sceneCats.forEach((cat, index) => {
+        const baseX = slots[index % slots.length] ?? minX;
+        const x = baseX + Math.random() * 30 - 15;
+        const y = groundY + Math.random() * 22;
+        addDeadNpc(cat, x, y);
     });
 }
 
