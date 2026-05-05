@@ -915,10 +915,19 @@ function renderCats() {
 
     if (game.currentArea === 'moonpool' && (!game.moonpoolDone || game.ghostMode)) {
         if (game.ghostMode) {
-            deadCats().forEach((cat, index) => {
-                const col = index % 4;
-                const row = Math.floor(index / 4);
-                addDeadNpc(cat, 1280 + col * 220, groundY + 28 + row * 70);
+            const all = deadCats();
+            const slots = [];
+            for (let xs = 720; xs < 1460; xs += 120) slots.push(xs);
+            for (let xs = 1940; xs < 2960; xs += 120) slots.push(xs);
+            for (let i = slots.length - 1; i > 0; i -= 1) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [slots[i], slots[j]] = [slots[j], slots[i]];
+            }
+            all.forEach((cat, index) => {
+                const baseX = slots[index % slots.length];
+                const x = baseX + Math.random() * 24 - 12;
+                const y = groundY + Math.random() * 14;
+                addDeadNpc(cat, x, y);
             });
         } else {
             addStarclanNpc('Silverstar', 1390);
