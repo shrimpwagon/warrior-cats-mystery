@@ -212,6 +212,27 @@ const genderCycle = ['tom', 'she-cat', 'non-binary'];
 const genderLabels = { tom: 'Tom', 'she-cat': 'She-cat', 'non-binary': 'Non-binary' };
 let currentGender = 'tom';
 
+const RANDOM_PREFIXES = ['Stone', 'River', 'Sky', 'Storm', 'Frost', 'Ember', 'Sun', 'Shade', 'Dusk', 'Pebble', 'Flame', 'Wind', 'Hawk', 'Thorn', 'Mist', 'Berry', 'Ivy', 'Heather', 'Holly', 'Birch', 'Robin', 'Lark', 'Cinder', 'Spark', 'Reed', 'Oak', 'Fern', 'Briar', 'Petal', 'Dawn', 'Ash', 'Cloud', 'Brook', 'Leaf', 'Maple'];
+
+function randomizeTitleChoices() {
+    currentPrefix = RANDOM_PREFIXES[Math.floor(Math.random() * RANDOM_PREFIXES.length)];
+    currentFurIndex = Math.floor(Math.random() * pelts.length);
+    currentGender = genderCycle[Math.floor(Math.random() * genderCycle.length)];
+    if (game) {
+        game.playerPrefix = currentPrefix;
+        game.playerFurIndex = currentFurIndex;
+        game.playerFur = pelts[currentFurIndex].fur;
+        game.playerMark = pelts[currentFurIndex].mark;
+        game.gender = currentGender;
+    }
+    if (peltPicker) {
+        peltPicker.querySelectorAll('.pelt-swatch').forEach((btn, idx) => {
+            btn.classList.toggle('selected', idx === currentFurIndex);
+        });
+    }
+    updateTitlePreview();
+}
+
 function undoTitleChange() {
     currentPrefix = 'Bramble';
     currentFurIndex = 0;
@@ -3403,6 +3424,10 @@ genderBtn.addEventListener('click', cycleGender);
 const undoTitleBtn = document.getElementById('undoTitleBtn');
 if (undoTitleBtn) {
     undoTitleBtn.addEventListener('click', undoTitleChange);
+}
+const randomTitleBtn = document.getElementById('randomTitleBtn');
+if (randomTitleBtn) {
+    randomTitleBtn.addEventListener('click', randomizeTitleChoices);
 }
 buildPeltPicker();
 updateTitlePreview();
