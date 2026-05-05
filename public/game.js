@@ -79,7 +79,10 @@ const extraCats = {
     Fernpaw: { rank: 'Apprentice', gender: 'She-cat', fur: '#bbb5a2', mark: '#776854' },
     Nettleclaw: { rank: 'Sunclan Warrior', gender: 'Tom', fur: '#d09b42', mark: '#5a3920' },
     Dawnpelt: { rank: 'Sunclan Warrior', gender: 'She-cat', fur: '#e6c77d', mark: '#9b6a2f' },
-    Russetfang: { rank: 'Sunclan Deputy', gender: 'Tom', fur: '#9f4f33', mark: '#f0a35d' }
+    Russetfang: { rank: 'Sunclan Deputy', gender: 'Tom', fur: '#9f4f33', mark: '#f0a35d' },
+    Hollybriar: { rank: 'Dawnclan Warrior', gender: 'She-cat', fur: '#785137', mark: '#caa37b' },
+    Quailfoot: { rank: 'Dawnclan Warrior', gender: 'Tom', fur: '#a5905f', mark: '#3e2b18' },
+    Ashberry: { rank: 'Dawnclan Warrior', gender: 'She-cat', fur: '#65574b', mark: '#f0d28b' }
 };
 
 const mateCandidates = new Set(['Mistclaw', 'Brindleleaf', 'Cloudspark', 'Sorreltail', 'Smudge']);
@@ -553,7 +556,7 @@ function resetGame(showOverlay = true) {
             Reedpaw: { maxHp: 20, dmg: 5, heal: 3, wins: 0 },
             Fernpaw: { maxHp: 35, dmg: 9, heal: 5, wins: 0 },
             Pinefoot: { maxHp: 55, dmg: 14, heal: 1, wins: 0 },
-            Ravenstripe: { maxHp: 55, dmg: 15, heal: 1, wins: 0 },
+            Ravenstripe: { maxHp: 55, dmg: 15, heal: 4, wins: 0 },
             Rogue: { maxHp: 60, dmg: 19, heal: 20, wins: 0 }
         },
         rogueDefeated: false,
@@ -712,7 +715,7 @@ function setScene(area) {
 }
 
 function isRaining() {
-    return game?.started && game.day > 0 && game.day % 17 === 0;
+    return game?.started && game.day >= 17 && (game.day - 17) % 17 < 2;
 }
 
 function renderAll() {
@@ -799,9 +802,11 @@ function renderCats() {
 
         const moonclanPool = ['Cloudspark', 'Mistclaw', 'Brindleleaf', 'Sorreltail', 'Pinefoot'].filter((n) => shouldShowLivingCat(n));
         const sunclanPool = ['Nettleclaw', 'Dawnpelt', 'Russetfang'];
+        const dawnclanPool = ['Hollybriar', 'Quailfoot', 'Ashberry'];
         const combinedPool = [
             ...moonclanPool.map((name) => ({ name, kind: 'moonclan' })),
-            ...sunclanPool.map((name) => ({ name, kind: 'sunclan' }))
+            ...sunclanPool.map((name) => ({ name, kind: 'sunclan' })),
+            ...dawnclanPool.map((name) => ({ name, kind: 'dawnclan' }))
         ];
         for (let i = combinedPool.length - 1; i > 0; i -= 1) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -815,6 +820,8 @@ function renderCats() {
                 const cat = cast.find((c) => c.name === guest.name);
                 if (!cat) return;
                 addNpc(guest.name, cat.rank, x, groundY, cat.fur, cat.mark, () => setMessage(guest.name, `${guest.name} murmurs about the night sky and watches the leaders.`));
+            } else if (guest.kind === 'dawnclan') {
+                addExtraNpc(guest.name, x, groundY, () => setMessage(guest.name, `${guest.name} of Dawnclan dips their head. "Dawnclan watches the same stars."`));
             } else {
                 addExtraNpc(guest.name, x, groundY, () => setMessage(guest.name, `${guest.name} keeps their tail close and listens.`));
             }
@@ -1330,6 +1337,17 @@ function showAccusationButtons() {
 function speak(cat) {
     if (!game.started) {
         return;
+    }
+    if (game.firstSolved
+        && game.matePatrolDeath
+        && game.day < game.matePatrolDeath.day + 3
+        && cat.name !== game.matePatrolDeath.name) {
+        const lookupName = game.ashstarLeader && cat.name === 'Ashstar' ? 'Ashstar' : cat.name;
+        const line = pityLineFor(lookupName);
+        if (line) {
+            setMessage(`${cat.name} (${cat.gender})`, line);
+            return;
+        }
     }
     if (game.firstSolved && game.mate === 'Smudge' && game.kittypetMateRevealed && cat.name !== 'Smudge') {
         const lookup = game.ashstarLeader && cat.name === 'Ashstar' ? 'Ashstar' : cat.name;
@@ -1913,7 +1931,7 @@ function ensureOpponents() {
             Reedpaw: { maxHp: 20, dmg: 5, heal: 3, wins: 0 },
             Fernpaw: { maxHp: 35, dmg: 9, heal: 5, wins: 0 },
             Pinefoot: { maxHp: 55, dmg: 14, heal: 1, wins: 0 },
-            Ravenstripe: { maxHp: 55, dmg: 15, heal: 1, wins: 0 },
+            Ravenstripe: { maxHp: 55, dmg: 15, heal: 4, wins: 0 },
             Rogue: { maxHp: 60, dmg: 19, heal: 20, wins: 0 }
         };
     }
@@ -2579,20 +2597,40 @@ function handlePatrolDeath(name) {
         gender: info.gender,
         homeScene: 'camp'
     });
+    if (name === game.mate) {
+        game.matePatrolDeath = { name, day: game.day };
+    }
     addNote(`${name} did not return from the lone patrol. The forest swallowed them.`);
     setMessage('Patrol Report', `${name} did not return from the patrol. The clan grieves. Their body was never found.`);
     renderAll();
     renderDeputyActions();
 }
 
+function pityLineFor(name) {
+    if (!game.matePatrolDeath) return null;
+    const lines = {
+        Whiskerstar: `Whiskerstar lays a paw on yours. "I am so sorry about ${game.matePatrolDeath.name}. The forest takes good cats too soon."`,
+        Ashfall: `Ashfall lowers his voice. "I cannot imagine losing Pinefoot the way you lost ${game.matePatrolDeath.name}. Stay close to those who remain."`,
+        Ashstar: `Ashstar dips her head. "The clan grieves with you, ${warriorName()}. ${game.matePatrolDeath.name}'s name will be honored at every Gathering."`,
+        Mistclaw: `Mistclaw bumps your shoulder. "I will help patrol the border this moon. Do not push yourself."`,
+        Brindleleaf: `Brindleleaf says quietly, "If you need company, I am here."`,
+        Cloudspark: `Cloudspark touches her nose to yours. "${game.matePatrolDeath.name} was kind. I miss them too."`,
+        Sorreltail: `Sorreltail nudges a thrush toward you. "Eat. ${game.matePatrolDeath.name} would want that."`,
+        Pinefoot: `Pinefoot says softly, "Tell me what ${game.matePatrolDeath.name} liked best. I want to remember."`,
+        Ravenstripe: `Ravenstripe huffs, eyes lowered. "Loss is a quiet thing. Take time."`
+    };
+    return lines[name];
+}
+
 function resolvePatrol() {
     const cats = game.patrolPending.cats;
     game.patrolPending = null;
     const hasMedic = cats.includes('Mosspaw') || cats.includes('Mossleaf');
-    if (cats.length === 1) {
-        let chance = isRaining() ? 0.35 : 0.22;
+    const deathCap = (game.patrolDeaths || []).length >= 4;
+    if (cats.length === 1 && !deathCap) {
+        let chance = isRaining() ? 0.40 : 0.23;
         if (hasMedic) {
-            chance = isRaining() ? 0.08 : 0.05;
+            chance = 0.10;
         }
         if (Math.random() < chance) {
             handlePatrolDeath(cats[0]);
