@@ -2209,6 +2209,7 @@ function endBattle(result) {
         }
         stats.playerMaxHp += rand(3, 5);
         stats.playerDmg += rand(1, 2);
+        stats.playerHeal += 1;
         opp.maxHp += rand(1, 2);
         opp.dmg += rand(1, 2);
         const next = currentTrainingOpponent();
