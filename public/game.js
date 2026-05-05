@@ -757,7 +757,7 @@ function renderCats() {
             rogueNode.type = 'button';
             rogueNode.className = 'cat npc warrior rogue';
             rogueNode.dataset.catName = 'Rogue';
-            rogueNode.style.left = '2480px';
+            rogueNode.style.left = '1400px';
             rogueNode.style.bottom = `${groundY}px`;
             rogueNode.style.setProperty('--fur', '#7a3520');
             rogueNode.style.setProperty('--mark', '#1e1009');
@@ -2569,7 +2569,8 @@ function movePlayer() {
         && game.currentArea === 'borders'
         && !game.rogueDefeated
         && (!game.battle || game.battle.ended)
-        && playerState.x > 2380) {
+        && playerState.x > 1340
+        && playerState.x < 1480) {
         startBattle('Rogue');
     }
     requestAnimationFrame(movePlayer);
