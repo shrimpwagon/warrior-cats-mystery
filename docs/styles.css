@@ -275,8 +275,8 @@ p {
     position: absolute;
     left: 360px;
     bottom: 96px;
-    width: 110px;
-    height: 56px;
+    width: 72px;
+    height: 38px;
     border: 0;
     padding: 0;
     cursor: pointer;
@@ -294,17 +294,43 @@ p {
         radial-gradient(ellipse at 80% 64%, #c89a6a 0 24%, transparent 26%),
         radial-gradient(ellipse at 38% 80%, #6f4e2c 0 18%, transparent 20%),
         linear-gradient(180deg, #8a6840, #5a3f24);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.45), inset 0 -10px 14px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.45), inset 0 -8px 12px rgba(0, 0, 0, 0.35);
+    position: relative;
+}
+
+.prey-pile-mound::before,
+.prey-pile-mound::after {
+    content: "";
+    position: absolute;
+    border-radius: 70% 30% 70% 30%;
+    background: linear-gradient(180deg, #aab1b8, #6b7177);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+.prey-pile-mound::before {
+    width: 22px;
+    height: 9px;
+    left: 8px;
+    top: 6px;
+    transform: rotate(-12deg);
+}
+
+.prey-pile-mound::after {
+    width: 26px;
+    height: 10px;
+    right: 6px;
+    top: 12px;
+    transform: rotate(8deg);
 }
 
 .prey-pile-label {
     position: absolute;
-    top: -16px;
+    top: -18px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: #f0e3a8;
-    background: rgba(7, 14, 20, 0.78);
+    background: rgba(7, 14, 20, 0.82);
     padding: 1px 6px;
     border-radius: 4px;
     pointer-events: none;

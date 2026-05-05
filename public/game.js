@@ -47,7 +47,7 @@ const PREY_PILE_MAX = 30;
 
 function updatePreyPileLabel() {
     if (!preyPileLabel) return;
-    preyPileLabel.textContent = game?.preyPile != null ? `${game.preyPile}/${PREY_PILE_MAX}` : '';
+    preyPileLabel.textContent = game?.preyPile != null ? `Prey pile ${game.preyPile}/${PREY_PILE_MAX}` : '';
 }
 
 function preyPileClick() {
