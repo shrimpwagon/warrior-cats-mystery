@@ -462,9 +462,9 @@ function resetGame(showOverlay = true) {
         mateKilled: false,
         oldAgePrompted: false,
         nurseryKitAges: [
-            { base: 'Pebble', bornDay: 1, fur: '#c99762', mark: '#f5d095' },
-            { base: 'Moss', bornDay: 1, fur: '#ded8c4', mark: '#857d67' },
-            { base: 'Tiny', bornDay: 1, fur: '#514132', mark: '#b8a087' }
+            { base: 'Pebble', bornDay: 1, fur: '#c99762', mark: '#f5d095', gender: 'Tom' },
+            { base: 'Moss', bornDay: 1, fur: '#ded8c4', mark: '#857d67', gender: 'She-cat' },
+            { base: 'Tiny', bornDay: 1, fur: '#514132', mark: '#b8a087', gender: 'She-cat' }
         ],
         playerPrefix: currentPrefix,
         playerFurIndex: currentFurIndex,
@@ -769,11 +769,11 @@ function renderCats() {
         kittypetNode.addEventListener('click', () => {
             if (!game.kittypetMet) {
                 game.kittypetMet = true;
-                setMessage('Smudge (Kittypet)', 'I am Smudge. I live with twolegs in the nest beyond this fence. They feed me out of a noisy can.');
+                setMessage('Smudge (She-cat, Kittypet)', 'I am Smudge. I live with twolegs in the nest beyond this fence. They feed me out of a noisy can.');
                 return;
             }
             if (game.mate === 'Smudge') {
-                setMessage('Smudge (Your mate)', rotatingText('SmudgeMate', [
+                setMessage('Smudge (She-cat, your mate)', rotatingText('SmudgeMate', [
                     'Smudge purrs against your side. "I miss you when the twolegs lock me indoors at night."',
                     'Smudge whispers, "I told the twolegs about you, but they only laughed."',
                     'Smudge butts her head into your shoulder. "Stay a little longer."',
@@ -786,7 +786,7 @@ function renderCats() {
                 askForCatMate(SMUDGE_CAT);
                 return;
             }
-            setMessage('Smudge (Kittypet)', rotatingText('Smudge', [
+            setMessage('Smudge (She-cat, Kittypet)', rotatingText('Smudge', [
                 'My twolegs play soft music at sunhigh. The walls hum with it.',
                 'The fence is warm under my paws. Sometimes I sit here for whole sunrises.',
                 'A bigger kittypet from another nest hisses at me through the wires. I hiss back.',
@@ -862,7 +862,8 @@ function renderCampKits() {
             : stage === 'apprentice'
                 ? apprenticeSpots[index % apprenticeSpots.length]
                 : kitSpots[index % kitSpots.length];
-        addNpc(name, stage === 'warrior' ? 'Warrior' : stage === 'apprentice' ? 'Apprentice' : 'Kit', x, groundY, kit.fur, kit.mark, () => setMessage(name, rotatingText(name, [
+        const genderLabel = kit.gender ? ` (${kit.gender})` : '';
+        addNpc(name, stage === 'warrior' ? 'Warrior' : stage === 'apprentice' ? 'Apprentice' : 'Kit', x, groundY, kit.fur, kit.mark, () => setMessage(`${name}${genderLabel}`, rotatingText(name, [
             stage === 'kit' ? `${name} tumbles through the clearing.` : `${name} asks to practice patrol steps.`,
             stage === 'warrior' ? `${name} says, "I can go on patrol now."` : `${name} bats at a moss scrap.`,
             `${name} smells of warm moss and milk.`
@@ -898,7 +899,8 @@ function renderAbandonedKitInCamp() {
             document.getElementById('huntRiverpaw').addEventListener('click', () => setMessage('Hunting', 'Riverpaw tracks a mouse trail beside you and learns to stay downwind.'));
             document.getElementById('fightRiverpaw').addEventListener('click', () => setMessage('Fighting Grounds', 'You spar gently with Riverpaw, teaching them to dodge, tap, and keep their claws sheathed.'));
         }
-        setMessage(name, rotatingText(name, [
+        const genderLabel = game.abandonedKit.gender ? ` (${game.abandonedKit.gender})` : '';
+        setMessage(`${name}${genderLabel}`, rotatingText(name, [
         game.abandonedKit.stage === 'kit' ? 'The abandoned kit presses close to your paws.' : 'Your apprentice watches you carefully.',
         game.abandonedKit.stage === 'warrior' ? 'Riverheart says, "Thank you for mentoring me."' : 'They are growing braver every day.',
         'They smell faintly of river reeds.'
@@ -1185,7 +1187,7 @@ function speak(cat) {
                 game.moonpoolDone ? 'Starclan has granted my lives. You are my deputy now.' : 'Come with me to the Moonpool, deputy.',
                 'Pinefoot keeps watch on the camp barrier while we plan. She is steady, my mate.'
             ];
-        setMessage('Ashstar', rotatingText('AshstarTalk', lines));
+        setMessage('Ashstar (Tom)', rotatingText('AshstarTalk', lines));
         return;
     }
     if (!game.firstSolved && cat.name === 'Ashfall' && firstMurderer === 'Pinefoot') {
@@ -1240,7 +1242,7 @@ function speak(cat) {
         let pool;
         if (trustLvl >= 3 && canMateWith(cat) && flirtyLines[cat.name]) {
             pool = flirtyLines[cat.name];
-        } else if (trustLvl >= 1 && friendlyLines[cat.name]) {
+        } else if (trustLvl >= 2 && friendlyLines[cat.name]) {
             pool = friendlyLines[cat.name];
         } else {
             pool = [
@@ -2238,7 +2240,7 @@ function resolvePatrol() {
     const outcome = outcomes[Math.floor(Math.random() * outcomes.length)];
     if (!game.abandonedKitFound && outcome === 'abandoned-kit') {
         game.abandonedKitFound = true;
-        game.abandonedKit = { stage: 'kit', foundDay: game.day };
+        game.abandonedKit = { stage: 'kit', foundDay: game.day, gender: Math.random() < 0.5 ? 'Tom' : 'She-cat' };
         addNote(`${cats.join(', ')} found an abandoned kit near the border. You became their mentor.`);
         renderAll();
         setMessage('Patrol Report', `${cats.join(', ')} found an abandoned kit by the river reeds. You take responsibility for mentoring Riverkit.`);
@@ -2344,7 +2346,8 @@ function updateKitsTimeline() {
                 base: names[index],
                 bornDay: game.day,
                 fur: furPatterns[index].fur,
-                mark: furPatterns[index].mark
+                mark: furPatterns[index].mark,
+                gender: Math.random() < 0.5 ? 'Tom' : 'She-cat'
             });
         }
         const text = playerCarriesKits() ? `You have ${kitCount} kit${kitCount === 1 ? '' : 's'} in camp.` : `${game.mate} has ${kitCount} kit${kitCount === 1 ? '' : 's'} in camp.`;
