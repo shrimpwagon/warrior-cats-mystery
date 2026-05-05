@@ -3301,8 +3301,11 @@ function movePlayer() {
     }
 
     if (!game.ghostMode && touchesRiver(playerState.x)) {
-        playerState.x = previousX + (playerState.x > previousX ? -42 : 42);
-        setMessage(warriorName(), 'I can’t swim! The river pushes you back.');
+        const jumping = game.currentArea === 'hunting' && playerState.y > 0;
+        if (!jumping) {
+            playerState.x = previousX + (playerState.x > previousX ? -42 : 42);
+            setMessage(warriorName(), 'I can’t swim! The river pushes you back.');
+        }
     }
 
     playerState.velocityY -= 0.75;
