@@ -2885,16 +2885,22 @@ function postSolvePool(name) {
         ];
     }
     const pools = {
-        Whiskerstar: [
-            'Whiskerstar paces near Highrock. "The forest grows quieter every season."',
-            'Whiskerstar says, "Lead the patrols well. Ashfall is a good deputy."',
-            'Whiskerstar studies the camp. "Every nest is full again. That gives me peace."',
-            'Whiskerstar murmurs, "Starclan watches over us all."',
-            `Whiskerstar dips her head. "You have grown into your warrior name, ${warriorName()}."`,
-            'Whiskerstar says, "Rest when you can. The clan needs you sharp."',
-            'Whiskerstar watches the kits play. "They are why we hold the borders."',
-            'Whiskerstar adds, "Tomorrow may bring trials. Be ready, but not afraid."'
-        ],
+        Whiskerstar: (() => {
+            const base = [
+                'Whiskerstar paces near Highrock. "The forest grows quieter every season."',
+                'Whiskerstar says, "Lead the patrols well. Ashfall is a good deputy."',
+                'Whiskerstar studies the camp. "Every nest is full again. That gives me peace."',
+                'Whiskerstar murmurs, "Starclan watches over us all."',
+                `Whiskerstar dips her head. "You have grown into your warrior name, ${warriorName()}."`,
+                'Whiskerstar says, "Rest when you can. The clan needs you sharp."',
+                'Whiskerstar watches the kits play. "They are why we hold the borders."',
+                'Whiskerstar adds, "Tomorrow may bring trials. Be ready, but not afraid."'
+            ];
+            if (game?.preyPile != null && game.preyPile < 10) {
+                base.unshift('Whiskerstar glances toward the prey-pile. "It is too thin. The clan needs more prey — send out patrols."');
+            }
+            return base;
+        })(),
         Mistclaw: [
             'Mistclaw murmurs, "I still wonder how it all unraveled. Willowfur deserved more."',
             'Mistclaw says, "The hunting paths have been kind this moon."',
