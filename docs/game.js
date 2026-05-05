@@ -2451,7 +2451,7 @@ function handlePatrolDeath(name) {
 function resolvePatrol() {
     const cats = game.patrolPending.cats;
     game.patrolPending = null;
-    if (cats.length === 1 && Math.random() < 0.15) {
+    if (cats.length === 1 && Math.random() < 0.22) {
         handlePatrolDeath(cats[0]);
         return;
     }
