@@ -85,8 +85,8 @@ const extraCats = {
     Ashberry: { rank: 'Dawnclan Warrior', gender: 'She-cat', fur: '#65574b', mark: '#f0d28b' }
 };
 
-const mateCandidates = new Set(['Mistclaw', 'Brindleleaf', 'Cloudspark', 'Sorreltail', 'Smudge']);
-const SMUDGE_CAT = { name: 'Smudge', rank: 'Kittypet', gender: 'She-cat', fur: '#e8c895', mark: '#a86b3c' };
+const mateCandidates = new Set(['Mistclaw', 'Brindleleaf', 'Cloudspark', 'Sorreltail', 'Princess', 'Birchstep', 'Hollyfoot']);
+const SMUDGE_CAT = { name: 'Princess', rank: 'Kittypet', gender: 'She-cat', fur: '#e8c895', mark: '#a86b3c' };
 
 const firstLines = {
     Whiskerstar: ['My ears heard anger by the medicine den. Willowfur hissed that someone had stolen prey.', 'A leader must see truth through fog. Ask who left camp with mud on their paws.'],
@@ -250,6 +250,16 @@ const friendlyLines = {
         'Ravenstripe huffs. "Fine. You are not the worst cat to share a sunbeam with."',
         'Ravenstripe lowers his head. "I owe you for the trust. I will not forget."',
         'Ravenstripe says, "Hunt with me at moonhigh. The river path is mine alone."'
+    ],
+    Birchstep: [
+        'Birchstep nods to you. "I patrol better when you are nearby."',
+        'Birchstep says, "Come share fresh-kill with me at sunhigh."',
+        'Birchstep grins. "I trust your nose. Lead the next hunt."'
+    ],
+    Hollyfoot: [
+        'Hollyfoot grooms her dark pelt and looks up. "Sit a while. I do not mind the company."',
+        'Hollyfoot murmurs, "I dreamed of you guarding my back in a fight."',
+        'Hollyfoot says quietly, "You are a good warrior. The clan is lucky."'
     ]
 };
 
@@ -283,6 +293,16 @@ const flirtyLines = {
         'Ravenstripe glances sideways. "Stop making me feel things, will you?"',
         'Ravenstripe says low, "If anyone is going to share my nest, it had better be you."',
         'Ravenstripe almost smiles. "I never asked for company. I am asking now."'
+    ],
+    Birchstep: [
+        'Birchstep brushes his tail along yours. "I have been wondering... would you share my nest?"',
+        'Birchstep murmurs, "I sleep easier when you are close."',
+        'Birchstep says softly, "Tell me you feel it too."'
+    ],
+    Hollyfoot: [
+        'Hollyfoot leans into your shoulder. "Some bonds keep a clan steady. I want one with you."',
+        'Hollyfoot whispers, "You make the warrior code feel less heavy."',
+        'Hollyfoot says, "If you ever asked, my answer is yes."'
     ]
 };
 
@@ -885,24 +905,24 @@ function renderCats() {
         kittypetNode.style.bottom = `${groundY + 80}px`;
         kittypetNode.style.setProperty('--fur', '#e8c895');
         kittypetNode.style.setProperty('--mark', '#a86b3c');
-        kittypetNode.dataset.catName = 'Smudge';
-        kittypetNode.innerHTML = `${catMarkup()}<span class="collar"></span><span class="nameplate">Smudge</span>`;
+        kittypetNode.dataset.catName = 'Princess';
+        kittypetNode.innerHTML = `${catMarkup()}<span class="collar"></span><span class="nameplate">Princess</span>`;
         kittypetNode.addEventListener('click', () => {
             if (game.ghostMode) {
-                setMessage('Smudge', 'Smudge tilts her head, sensing nothing. The living cannot hear ghosts.');
+                setMessage('Princess', 'Princess tilts her head, sensing nothing. The living cannot hear ghosts.');
                 return;
             }
             if (!game.kittypetMet) {
                 game.kittypetMet = true;
-                setMessage('Smudge (She-cat, Kittypet)', 'I am Smudge. I live with twolegs in the nest beyond this fence. They feed me out of a noisy can.');
+                setMessage('Princess (She-cat, Kittypet)', 'I am Princess. I live with twolegs in the nest beyond this fence. They feed me out of a noisy can.');
                 return;
             }
-            if (game.mate === 'Smudge') {
-                setMessage('Smudge (She-cat, your mate)', rotatingText('SmudgeMate', [
-                    'Smudge purrs against your side. "I miss you when the twolegs lock me indoors at night."',
-                    'Smudge whispers, "I told the twolegs about you, but they only laughed."',
-                    'Smudge butts her head into your shoulder. "Stay a little longer."',
-                    'Smudge says, "Tell me what the camp smells like today. I want to picture it."'
+            if (game.mate === 'Princess') {
+                setMessage('Princess (She-cat, your mate)', rotatingText('PrincessMate', [
+                    'Princess purrs against your side. "I miss you when the twolegs lock me indoors at night."',
+                    'Princess whispers, "I told the twolegs about you, but they only laughed."',
+                    'Princess butts her head into your shoulder. "Stay a little longer."',
+                    'Princess says, "Tell me what the camp smells like today. I want to picture it."'
                 ]));
                 return;
             }
@@ -912,7 +932,7 @@ function renderCats() {
                 return;
             }
             const trustShown = Math.min(3, game.smudgeClicks);
-            setMessage(`Smudge (She-cat, Kittypet — trust ${trustShown}/3)`, rotatingText('Smudge', [
+            setMessage(`Princess (She-cat, Kittypet — trust ${trustShown}/3)`, rotatingText('Princess', [
                 'My twolegs play soft music at sunhigh. The walls hum with it.',
                 'The fence is warm under my paws. Sometimes I sit here for whole sunrises.',
                 'A bigger kittypet from another nest hisses at me through the wires. I hiss back.',
@@ -1349,7 +1369,7 @@ function speak(cat) {
             return;
         }
     }
-    if (game.firstSolved && game.mate === 'Smudge' && game.kittypetMateRevealed && cat.name !== 'Smudge') {
+    if (game.firstSolved && game.mate === 'Princess' && game.kittypetMateRevealed && cat.name !== 'Princess') {
         const lookup = game.ashstarLeader && cat.name === 'Ashstar' ? 'Ashstar' : cat.name;
         if (!game.kittypetReactionShown[lookup] && kittypetReactionFor(lookup)) {
             game.kittypetReactionShown[lookup] = true;
@@ -1797,6 +1817,11 @@ function talkInsideDen(name) {
         setMessage(name, ghostFeelingLine(name));
         return;
     }
+    const candidateData = extraCats[name] || cast.find((c) => c.name === name);
+    if (game.firstSolved && candidateData?.rank === 'Warrior' && mateCandidates.has(name)) {
+        speak({ name, rank: candidateData.rank, gender: candidateData.gender, fur: candidateData.fur, mark: candidateData.mark });
+        return;
+    }
     const denLines = {
         Snowkit: [
             'Snowkit is curled tight in the moss, breathing slow and steady.',
@@ -1878,9 +1903,9 @@ function visitArea(area) {
             const sleepLabel = game.ghostMode ? 'Drift Until Dusk' : 'Sleep in Warrior Den';
             accusePanel.innerHTML = `<button id="sleepBtn" type="button">${sleepLabel}</button>`;
             document.getElementById('sleepBtn').addEventListener('click', sleepInWarriorDen);
-            if (!game.ghostMode && game.mate === 'Smudge' && !game.kittypetMateRevealed) {
-                accusePanel.insertAdjacentHTML('beforeend', '<button id="tellClanBtn" type="button">Tell the clan about Smudge</button>');
-                document.getElementById('tellClanBtn').addEventListener('click', tellClanAboutSmudge);
+            if (!game.ghostMode && game.mate === 'Princess' && !game.kittypetMateRevealed) {
+                accusePanel.insertAdjacentHTML('beforeend', '<button id="tellClanBtn" type="button">Tell the clan about Princess</button>');
+                document.getElementById('tellClanBtn').addEventListener('click', tellClanAboutPrincess);
             }
             renderDeputyActions();
         } else {
@@ -2267,7 +2292,9 @@ function givePrey(name = 'Sorreltail') {
 }
 
 function proposeMate(name) {
-    const cat = cast.find((entry) => entry.name === name);
+    const fromCast = cast.find((entry) => entry.name === name);
+    const fromExtras = extraCats[name];
+    const cat = fromCast || (fromExtras ? { name, ...fromExtras } : null);
     if (!game.rose || trustFor(name) < 3 || game.mate || !cat || !canMateWith(cat)) {
         return;
     }
@@ -2290,12 +2317,12 @@ function proposeMate(name) {
     setMessage(`${name} (${cat.gender})`, `Do you want to give the special rose to ${name} and ask them to be your mate?`);
 }
 
-function tellClanAboutSmudge() {
+function tellClanAboutPrincess() {
     if (game.kittypetMateRevealed) {
         return;
     }
     game.kittypetMateRevealed = true;
-    addNote('You told Moonclan that Smudge, a kittypet from beyond the fence, is your mate.');
+    addNote('You told Moonclan that Princess, a kittypet from beyond the fence, is your mate.');
     setMessage('Moonclan', 'Word spreads through the camp. Some cats blink in surprise, others purr at the news. Talk to them and see how each one feels.');
     visitArea('camp');
 }

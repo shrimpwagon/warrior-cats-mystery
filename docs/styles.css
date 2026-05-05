@@ -1231,6 +1231,19 @@ p {
 
 .cat.sleeping-cat {
     animation: kitBreathe 3.6s ease-in-out infinite;
+    bottom: 4px;
+}
+
+.cat.sleeping-cat .leg {
+    height: 8px;
+    top: 60px;
+}
+
+.cat.sleeping-cat .head {
+    background:
+        radial-gradient(ellipse 6px 1.5px at 47% 40%, #1a1a1a 70%, transparent 72%),
+        radial-gradient(circle at 70% 48%, #111 0 7%, transparent 8%),
+        var(--fur);
 }
 
 .cat.sleeping-cat::before {
