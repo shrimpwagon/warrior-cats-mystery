@@ -1196,7 +1196,7 @@ function renderCampKits() {
                     game.trust[name] = trustFor(name) + 1;
                     addNote(`${name} trust increased to ${trustFor(name)}/${trustMax(name)} from spending time together.`);
                 }
-                const trustLine = trustFor(name) > 0 ? ` Trust ${trustFor(name)}/${trustMax(name)}.` : '';
+                const trustLine = ` Trust ${trustFor(name)}/${trustMax(name)}.`;
                 setMessage(`${name}${genderLabel}`, `${rotatingText(name, lines)}${trustLine}`);
                 return;
             }
