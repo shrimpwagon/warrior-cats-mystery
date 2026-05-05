@@ -378,6 +378,69 @@ function setMessage(who, text) {
     dialogue.textContent = text;
 }
 
+let rainSource = null;
+let rainGain = null;
+
+function startRainSound() {
+    if (rainSource) {
+        return;
+    }
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) {
+        return;
+    }
+    audioContext = audioContext || new AudioCtx();
+    if (audioContext.state === 'suspended') {
+        audioContext.resume().catch(() => {});
+    }
+    const bufferSize = audioContext.sampleRate * 2;
+    const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i += 1) {
+        data[i] = Math.random() * 2 - 1;
+    }
+    const source = audioContext.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    const filter = audioContext.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 1100;
+    filter.Q.value = 0.6;
+    const gain = audioContext.createGain();
+    gain.gain.setValueAtTime(0, audioContext.currentTime);
+    gain.gain.linearRampToValueAtTime(0.07, audioContext.currentTime + 1.4);
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioContext.destination);
+    source.start();
+    rainSource = source;
+    rainGain = gain;
+}
+
+function stopRainSound() {
+    if (!rainSource || !audioContext) {
+        return;
+    }
+    const now = audioContext.currentTime;
+    rainGain.gain.cancelScheduledValues(now);
+    rainGain.gain.setValueAtTime(rainGain.gain.value, now);
+    rainGain.gain.linearRampToValueAtTime(0, now + 0.8);
+    const stopping = rainSource;
+    setTimeout(() => {
+        try { stopping.stop(); } catch (err) { /* already stopped */ }
+    }, 900);
+    rainSource = null;
+    rainGain = null;
+}
+
+function updateRainSound() {
+    if (isRaining()) {
+        startRainSound();
+    } else {
+        stopRainSound();
+    }
+}
+
 function playButtonSound() {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) {
@@ -412,6 +475,7 @@ function resetGame(showOverlay = true) {
     if (game?.dayTimer) {
         clearTimeout(game.dayTimer);
     }
+    stopRainSound();
     foundClues = new Set();
     questioned = new Set();
     cast = freshCast();
@@ -652,6 +716,7 @@ function isRaining() {
 function renderAll() {
     world.classList.toggle('mystery-solved', Boolean(game.firstSolved));
     world.classList.toggle('raining', isRaining());
+    updateRainSound();
     if (notebookBtn) {
         notebookBtn.hidden = Boolean(game.firstSolved);
     }
