@@ -2316,6 +2316,9 @@ function proposeMate(name) {
     if (!game.rose || trustFor(name) < 3 || game.mate || !cat || !canMateWith(cat)) {
         return;
     }
+    if (game.roseDeclined && game.roseDeclined.name === name && game.roseDeclined.day === game.day) {
+        return;
+    }
     const previousPanel = accusePanel.innerHTML;
     accusePanel.innerHTML = '<button id="roseYesBtn" type="button">Yes, give the rose</button><button id="roseNoBtn" type="button">No, keep talking</button>';
     document.getElementById('roseYesBtn').addEventListener('click', () => {
@@ -2327,10 +2330,9 @@ function proposeMate(name) {
         updateHud();
     });
     document.getElementById('roseNoBtn').addEventListener('click', () => {
+        game.roseDeclined = { name, day: game.day };
         accusePanel.innerHTML = previousPanel;
-        const trustLine = ` Trust ${trustFor(name)}/3.`;
-        const pool = flirtyLines[name] || friendlyLines[name] || ['They flick their tail in greeting.'];
-        setMessage(`${name} (${cat.gender})`, `${rotatingText(`${name}-rosekept`, pool)}${trustLine}`);
+        speak(cat);
     });
     setMessage(`${name} (${cat.gender})`, `Do you want to give the special rose to ${name} and ask them to be your mate?`);
 }
@@ -3128,7 +3130,8 @@ function openInventory() {
         btn.addEventListener('click', () => offerItemAction(btn.dataset.item));
     });
     document.getElementById('invCloseBtn').addEventListener('click', () => {
-        visitArea(game.currentArea);
+        accusePanel.innerHTML = '';
+        setMessage('Inventory', 'You close your inventory.');
     });
     setMessage('Inventory', 'Click an item to drop or keep it.');
 }
