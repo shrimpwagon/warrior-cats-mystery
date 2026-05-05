@@ -486,7 +486,7 @@ function resetGame(showOverlay = true) {
         opponents: {
             Reedpaw: { maxHp: 20, dmg: 5, heal: 3, wins: 0 },
             Fernpaw: { maxHp: 35, dmg: 9, heal: 5, wins: 0 },
-            Pinefoot: { maxHp: 55, dmg: 15, heal: 7, wins: 0 },
+            Pinefoot: { maxHp: 55, dmg: 14, heal: 7, wins: 0 },
             Ravenstripe: { maxHp: 55, dmg: 15, heal: 7, wins: 0 },
             Rogue: { maxHp: 60, dmg: 19, heal: 20, wins: 0 }
         },
@@ -1749,7 +1749,7 @@ function ensureOpponents() {
         game.opponents = {
             Reedpaw: { maxHp: 20, dmg: 5, heal: 3, wins: 0 },
             Fernpaw: { maxHp: 35, dmg: 9, heal: 5, wins: 0 },
-            Pinefoot: { maxHp: 55, dmg: 15, heal: 7, wins: 0 },
+            Pinefoot: { maxHp: 55, dmg: 14, heal: 7, wins: 0 },
             Ravenstripe: { maxHp: 55, dmg: 15, heal: 7, wins: 0 },
             Rogue: { maxHp: 60, dmg: 19, heal: 20, wins: 0 }
         };
