@@ -72,6 +72,7 @@ const extraCats = {
     Tinykit: { rank: 'Kit', gender: 'She-cat', fur: '#514132', mark: '#b8a087' },
     Snowkit: { rank: 'Kit', gender: 'She-cat', fur: '#f0eee8', mark: '#cfd6dc' },
     Mosspaw: { rank: 'Medicine Cat Apprentice', gender: 'She-cat', fur: '#ded8c4', mark: '#857d67' },
+    Mossleaf: { rank: 'Medicine Cat', gender: 'She-cat', fur: '#ded8c4', mark: '#857d67' },
     Birchstep: { rank: 'Warrior', gender: 'Tom', fur: '#9b8260', mark: '#574330' },
     Hollyfoot: { rank: 'Warrior', gender: 'She-cat', fur: '#3e3a36', mark: '#7d8b7e' },
     Reedpaw: { rank: 'Apprentice', gender: 'Tom', fur: '#7c5a38', mark: '#d6b073' },
@@ -798,19 +799,25 @@ function renderCats() {
 
         const moonclanPool = ['Cloudspark', 'Mistclaw', 'Brindleleaf', 'Sorreltail', 'Pinefoot'].filter((n) => shouldShowLivingCat(n));
         const sunclanPool = ['Nettleclaw', 'Dawnpelt', 'Russetfang'];
-        const moonclanRotation = moonclanPool[gatheringNum % moonclanPool.length];
-        const moonclanRotation2 = moonclanPool[(gatheringNum + 2) % moonclanPool.length];
-        const sunclanRotation = sunclanPool[gatheringNum % sunclanPool.length];
-        const sunclanRotation2 = sunclanPool[(gatheringNum + 1) % sunclanPool.length];
-        const moonclanGuests = [...new Set([moonclanRotation, moonclanRotation2].filter(Boolean))];
-        const sunclanGuests = [...new Set([sunclanRotation, sunclanRotation2])];
-        moonclanGuests.forEach((name, i) => {
-            const cat = cast.find((c) => c.name === name);
-            if (!cat) return;
-            addNpc(name, cat.rank, 700 + i * 220, groundY, cat.fur, cat.mark, () => setMessage(name, `${name} murmurs about the night sky and watches the leaders.`));
-        });
-        sunclanGuests.forEach((name, i) => {
-            addExtraNpc(name, 1500 + i * 200, groundY, () => setMessage(name, `${name} keeps their tail close and listens.`));
+        const combinedPool = [
+            ...moonclanPool.map((name) => ({ name, kind: 'moonclan' })),
+            ...sunclanPool.map((name) => ({ name, kind: 'sunclan' }))
+        ];
+        for (let i = combinedPool.length - 1; i > 0; i -= 1) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [combinedPool[i], combinedPool[j]] = [combinedPool[j], combinedPool[i]];
+        }
+        const guests = combinedPool.slice(0, 5);
+        const guestSpots = [620, 880, 1500, 1740, 1980];
+        guests.forEach((guest, i) => {
+            const x = guestSpots[i % guestSpots.length];
+            if (guest.kind === 'moonclan') {
+                const cat = cast.find((c) => c.name === guest.name);
+                if (!cat) return;
+                addNpc(guest.name, cat.rank, x, groundY, cat.fur, cat.mark, () => setMessage(guest.name, `${guest.name} murmurs about the night sky and watches the leaders.`));
+            } else {
+                addExtraNpc(guest.name, x, groundY, () => setMessage(guest.name, `${guest.name} keeps their tail close and listens.`));
+            }
         });
         renderGhostCats();
         return;
@@ -1078,7 +1085,10 @@ function addExtraNpc(name, x, bottom, handler) {
 }
 
 function addStarclanNpc(name, x) {
-    addNpc(name, 'Starclan', x, groundY + 28, '#d9ecff', '#ffffff', () => setMessage(`${name} (Starclan)`, starclanLine(name)));
+    const handler = game.ghostMode
+        ? () => setMessage(`${name} (Starclan)`, starclanLine(name))
+        : () => setMessage(`${name} (Starclan)`, `${name} drifts past in a starry hush. The living cannot hear their voices, only sense their presence.`);
+    addNpc(name, 'Starclan', x, groundY + 28, '#d9ecff', '#ffffff', handler);
     npcLayer.lastElementChild.classList.add('starclan');
 }
 
@@ -1267,9 +1277,6 @@ function renderAreas() {
     if (!game.firstSolved || game.currentArea !== 'camp') {
         if (game.currentArea !== 'camp') {
             addAreaButton('camp', Math.max(80, playerState.x - 240), 'Return to Camp');
-        }
-        if (game.currentArea === 'gathering') {
-            addAreaButton('camp', playerState.x + 360, 'Finish Gathering');
         }
         if (game.currentArea === 'borders') {
             addAreaButton('sunclan', playerState.x + 220, 'Sunclan');
@@ -1698,7 +1705,7 @@ function enterDen(name) {
     const denCatLayer = document.getElementById('denCatLayer');
     let denCats = detail[2].slice();
     if (name === 'Medicine Den' && mosskitMedicineCat()) {
-        denCats = [...denCats, 'Mosspaw'];
+        denCats = [...denCats, mosskitName()];
     }
     denCats.filter((catName) => !(game.ashstarLeader && catName === 'Whiskerstar'))
         .filter((catName) => shouldShowLivingCat(catName))
@@ -1802,6 +1809,11 @@ function talkInsideDen(name) {
             'Mosspaw bundles dried marigold leaves. "These are for scratches. I packed them this morning."',
             'Mosspaw says, "Rosesong is teaching me which herbs grow near the river stones."',
             'Mosspaw whispers, "Sometimes I dream of Starclan. Rosesong says it is a good sign."'
+        ],
+        Mossleaf: [
+            'Mossleaf grinds yarrow with a smooth stone. "This is for poison and bad bellies."',
+            'Mossleaf nods. "I have my full medicine name now. Rosesong and I split the patrols of herbs."',
+            'Mossleaf studies you. "Your scent is a little tense. Rest, warrior."'
         ]
     };
     const fullCat = cast.find((cat) => cat.name === name) || extraCats[name];
@@ -2477,8 +2489,13 @@ function patrolOptions() {
         .filter((cat) => ['Warrior', 'Leader'].includes(cat.rank) && !['Whiskerstar', 'Ashstar', firstMurderer].includes(cat.name))
         .map((cat) => cat.name);
     const grownNursery = game.nurseryKitAges
-        .filter((kit) => growthStage(kit.bornDay) !== 'kit' && kit.base !== 'Moss')
-        .map((kit) => `${kit.base}${growthStage(kit.bornDay) === 'warrior' ? 'heart' : 'paw'}`);
+        .filter((kit) => growthStage(kit.bornDay) !== 'kit')
+        .map((kit) => {
+            if (kit.base === 'Moss') {
+                return growthStage(kit.bornDay) === 'warrior' ? 'Mossleaf' : 'Mosspaw';
+            }
+            return `${kit.base}${growthStage(kit.bornDay) === 'warrior' ? 'heart' : 'paw'}`;
+        });
     const grownPlayerKits = game.playerKits
         .filter((kit) => growthStage(kit.bornDay) !== 'kit')
         .map((kit) => `${kit.base}${growthStage(kit.bornDay) === 'warrior' ? 'heart' : 'paw'}`);
@@ -2507,6 +2524,15 @@ function sendPatrol() {
 function mosskitMedicineCat() {
     const moss = (game.nurseryKitAges || []).find((kit) => kit.base === 'Moss');
     return moss && growthStage(moss.bornDay) !== 'kit';
+}
+
+function mosskitName() {
+    const moss = (game.nurseryKitAges || []).find((kit) => kit.base === 'Moss');
+    if (!moss) return null;
+    const stage = growthStage(moss.bornDay);
+    if (stage === 'warrior') return 'Mossleaf';
+    if (stage === 'apprentice') return 'Mosspaw';
+    return 'Mosskit';
 }
 
 function findClanCatData(name) {
@@ -2562,8 +2588,24 @@ function handlePatrolDeath(name) {
 function resolvePatrol() {
     const cats = game.patrolPending.cats;
     game.patrolPending = null;
-    if (cats.length === 1 && Math.random() < 0.22) {
-        handlePatrolDeath(cats[0]);
+    const hasMedic = cats.includes('Mosspaw') || cats.includes('Mossleaf');
+    if (cats.length === 1) {
+        let chance = isRaining() ? 0.35 : 0.22;
+        if (hasMedic) {
+            chance = isRaining() ? 0.08 : 0.05;
+        }
+        if (Math.random() < chance) {
+            handlePatrolDeath(cats[0]);
+            return;
+        }
+    }
+    if (hasMedic) {
+        const herbs = ['marigold leaves', 'fresh catmint', 'yarrow stalks', 'cobweb bundles', 'tansy sprigs'];
+        const haul = herbs[Math.floor(Math.random() * herbs.length)];
+        addNote(`${cats.join(', ')} returned with ${haul} from the woods.`);
+        setMessage('Patrol Report', `${cats.join(', ')} brought back ${haul}. Rosesong and Mossleaf will sort them in the medicine den.`);
+        renderCats();
+        renderDeputyActions();
         return;
     }
     const outcomes = ['sunclan-scent', 'fresh-prey', 'fox-track', 'quiet-border', 'abandoned-kit'];
@@ -2593,7 +2635,7 @@ function updatePatrolAndApprenticeTimeline() {
     if (!game.abandonedKit) {
         return false;
     }
-    if (game.day >= game.abandonedKit.foundDay + 7 && game.abandonedKit.stage !== 'warrior') {
+    if (game.day >= game.abandonedKit.foundDay + 12 && game.abandonedKit.stage !== 'warrior') {
         game.abandonedKit.stage = 'warrior';
         addNote('Riverpaw earned the warrior name Riverheart after your mentorship.');
         setMessage('Ashstar', 'Let all cats old enough to catch their own prey gather beneath Highrock. Riverpaw, from this moment you are Riverheart, a warrior of Moonclan.');
@@ -2704,7 +2746,8 @@ function updateKitsTimeline() {
         if (stage === 'warrior' && !kit.warriorAnnounced) {
             kit.warriorAnnounced = true;
             if (kit.base === 'Moss') {
-                // Mosspaw stays as a medicine cat apprentice; no warrior name.
+                addNote('Mosspaw earned her full medicine-cat name: Mossleaf.');
+                warriorNames.push('Mosspaw is now Mossleaf, a full medicine cat alongside Rosesong');
                 return;
             }
             addNote(`${kit.base}paw earned a warrior name.`);
