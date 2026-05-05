@@ -1448,9 +1448,7 @@ function speak(cat) {
         } else if (trustLvl >= 3 && friendlyLines[cat.name]) {
             pool = friendlyLines[cat.name];
         } else {
-            const fallback = cat.name === 'Ashfall'
-                ? `${cat.name} dips his head. "I will be a steady deputy for as long as the clan needs me."`
-                : firstLines[cat.name]?.[1] || 'They flick their tail in greeting.';
+            const fallback = postSolveLine(cat.name) || 'They flick their tail in greeting.';
             pool = [
                 fallback,
                 'The camp feels different today.',
@@ -2631,6 +2629,30 @@ function handlePatrolDeath(name) {
     setMessage('Patrol Report', `${name} did not return from the patrol. The clan grieves. Their body was never found.`);
     renderAll();
     renderDeputyActions();
+}
+
+function postSolveLine(name) {
+    if (name === 'Ashfall') {
+        if (firstMurderer === 'Pinefoot') {
+            return 'Ashfall lowers his head. "I still feel Pinefoot beside me sometimes. The grief is heavy."';
+        }
+        return 'Ashfall dips his head. "I will be a steady deputy for as long as the clan needs me."';
+    }
+    const pastTenseSpeakers = {
+        Mistclaw: 'Mistclaw murmurs, "I still wonder how it all unraveled. Willowfur deserved more."',
+        Brindleleaf: 'Brindleleaf says, "Some moons I dream about Willowfur. The clan remembers her."',
+        Sorreltail: 'Sorreltail glances at the prey-pile. "Willowfur loved a fresh thrush. I leave one out for her sometimes."'
+    };
+    if (pastTenseSpeakers[name]) {
+        return pastTenseSpeakers[name];
+    }
+    const neutral = {
+        Whiskerstar: 'Whiskerstar paces near Highrock. "The forest grows quieter every season."',
+        Ravenstripe: 'Ravenstripe stretches in a sunbeam. "Quiet days are a gift."',
+        Cloudspark: 'Cloudspark stares toward the river. "The borders feel calmer this moon."',
+        Pinefoot: 'Pinefoot says, "The barrier is holding. The clan is safe."'
+    };
+    return neutral[name] || `${name} flicks their tail in greeting.`;
 }
 
 function pityLineFor(name) {
