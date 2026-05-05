@@ -481,11 +481,16 @@ function resetGame(showOverlay = true) {
         battleStats: {
             playerMaxHp: 20,
             playerDmg: 5,
-            playerHeal: 4,
-            enemyMaxHp: 20,
-            enemyDmg: 5,
-            enemyHeal: 3
-        }
+            playerHeal: 4
+        },
+        opponents: {
+            Reedpaw: { maxHp: 20, dmg: 5, heal: 3, wins: 0 },
+            Fernpaw: { maxHp: 35, dmg: 9, heal: 5, wins: 0 },
+            Pinefoot: { maxHp: 55, dmg: 15, heal: 7, wins: 0 },
+            Ravenstripe: { maxHp: 55, dmg: 15, heal: 7, wins: 0 },
+            Rogue: { maxHp: 60, dmg: 19, heal: 20, wins: 0 }
+        },
+        rogueDefeated: false
     };
     playerState.x = 120;
     playerState.y = 0;
@@ -746,6 +751,23 @@ function renderCats() {
         }
         if (shouldShowLivingCat('Mistclaw')) {
             addNpc('Mistclaw', 'Warrior', 1030, groundY, '#8fa0a6', '#eef6f5', () => setMessage('Mistclaw (Tom)', rotatingText('Mistclaw', ['This is where patrols prove themselves.', 'Do not step into Sunclan territory.', 'Want a paw-game on the stones?'])));
+        }
+        if (!game.rogueDefeated) {
+            const rogueNode = document.createElement('button');
+            rogueNode.type = 'button';
+            rogueNode.className = 'cat npc warrior rogue';
+            rogueNode.dataset.catName = 'Rogue';
+            rogueNode.style.left = '2480px';
+            rogueNode.style.bottom = `${groundY}px`;
+            rogueNode.style.setProperty('--fur', '#7a3520');
+            rogueNode.style.setProperty('--mark', '#1e1009');
+            rogueNode.innerHTML = `${catMarkup()}<span class="nameplate">Rogue</span>`;
+            rogueNode.addEventListener('click', () => {
+                if (!game.battle || game.battle.ended) {
+                    startBattle('Rogue');
+                }
+            });
+            npcLayer.appendChild(rogueNode);
         }
         renderGhostCats();
         return;
@@ -1712,30 +1734,63 @@ function visitArea(area) {
     } else if (area === 'fighting') {
         setMessage('Fighting Grounds', 'Reedpaw and Fernpaw train with moss balls and quick battle turns.');
         if (!game.ghostMode) {
-            accusePanel.innerHTML = '<button id="fightReedpawBtn" type="button">Battle Reedpaw</button>';
-            document.getElementById('fightReedpawBtn').addEventListener('click', startReedpawBattle);
+            const opponent = currentTrainingOpponent();
+            accusePanel.innerHTML = `<button id="fightOpponentBtn" type="button">Battle ${opponent}</button>`;
+            document.getElementById('fightOpponentBtn').addEventListener('click', () => startBattle(opponent));
         }
     }
 }
 
-function startReedpawBattle() {
-    if (!game.battleStats) {
-        return;
+function ensureOpponents() {
+    if (!game.opponents) {
+        game.opponents = {
+            Reedpaw: { maxHp: 20, dmg: 5, heal: 3, wins: 0 },
+            Fernpaw: { maxHp: 35, dmg: 9, heal: 5, wins: 0 },
+            Pinefoot: { maxHp: 55, dmg: 15, heal: 7, wins: 0 },
+            Ravenstripe: { maxHp: 55, dmg: 15, heal: 7, wins: 0 },
+            Rogue: { maxHp: 60, dmg: 19, heal: 20, wins: 0 }
+        };
     }
+}
+
+function currentTrainingOpponent() {
+    ensureOpponents();
+    if (game.opponents.Reedpaw.wins < 4) return 'Reedpaw';
+    if (game.opponents.Fernpaw.wins < 1) return 'Fernpaw';
+    return firstMurderer === 'Pinefoot' ? 'Ravenstripe' : 'Pinefoot';
+}
+
+function opponentIntro(name) {
+    const lines = {
+        Reedpaw: 'Reedpaw bows playfully. "Show me what you know, warrior."',
+        Fernpaw: 'Fernpaw drops into a low crouch. "I have been waiting for you."',
+        Pinefoot: 'Pinefoot stretches her shoulders. "I will not go easy. Earn it."',
+        Ravenstripe: 'Ravenstripe grins, tail twitching. "Finally — a real fight."',
+        Rogue: 'A scarred rogue snarls from the bracken. "This strip is mine now. Leave or bleed!"'
+    };
+    return lines[name] || `${name} steps up to face you.`;
+}
+
+function startBattle(opponentName) {
+    ensureOpponents();
+    const opp = game.opponents[opponentName];
     const stats = game.battleStats;
+    if (!opp || !stats) return;
     game.battle = {
+        opponent: opponentName,
         playerHp: stats.playerMaxHp,
-        enemyHp: stats.enemyMaxHp,
+        enemyHp: opp.maxHp,
         turn: 'player',
         ended: false
     };
     renderBattleUI();
-    setMessage('Reedpaw', 'Reedpaw bows playfully. "Show me what you know, warrior."');
+    setMessage(opponentName, opponentIntro(opponentName));
 }
 
 function renderBattleUI() {
     const stats = game.battleStats;
     const b = game.battle;
+    const opp = game.opponents[b.opponent];
     accusePanel.innerHTML = `
         <div class="battle">
             <div class="battle-row">
@@ -1746,9 +1801,9 @@ function renderBattleUI() {
                 </div>
                 <div class="battle-vs">VS</div>
                 <div class="battle-side">
-                    <div class="battle-name">Reedpaw</div>
-                    <div class="battle-bar enemy"><span class="battle-fill" style="width:${Math.max(0, b.enemyHp / stats.enemyMaxHp) * 100}%;"></span></div>
-                    <div class="battle-hp">${Math.max(0, b.enemyHp)}/${stats.enemyMaxHp}</div>
+                    <div class="battle-name">${b.opponent}</div>
+                    <div class="battle-bar enemy"><span class="battle-fill" style="width:${Math.max(0, b.enemyHp / opp.maxHp) * 100}%;"></span></div>
+                    <div class="battle-hp">${Math.max(0, b.enemyHp)}/${opp.maxHp}</div>
                 </div>
             </div>
             <div class="battle-actions">
@@ -1764,8 +1819,9 @@ function renderBattleUI() {
 }
 
 function playBattleAnimation(target, type) {
+    const opponentName = game.battle?.opponent;
     const node = target === 'enemy'
-        ? npcLayer.querySelector('[data-cat-name="Reedpaw"]')
+        ? (opponentName ? npcLayer.querySelector(`[data-cat-name="${opponentName}"]`) : null)
         : player;
     if (!node) {
         return;
@@ -1785,7 +1841,7 @@ function playerBattleAction(action) {
     if (action === 'scratch') {
         b.enemyHp -= stats.playerDmg;
         playBattleAnimation('enemy', 'scratch');
-        setMessage('Battle', `You scratch Reedpaw for ${stats.playerDmg} damage.`);
+        setMessage('Battle', `You scratch ${b.opponent} for ${stats.playerDmg} damage.`);
     } else {
         b.playerHp = Math.min(stats.playerMaxHp, b.playerHp + stats.playerHeal);
         playBattleAnimation('player', 'heal');
@@ -1806,19 +1862,17 @@ function enemyBattleTurn() {
     if (!b || b.ended) {
         return;
     }
-    const lowHp = b.enemyHp <= stats.enemyMaxHp * 0.25;
-    const heal = lowHp && Math.random() < 0.5;
+    const opp = game.opponents[b.opponent];
+    const atFullHp = b.enemyHp >= opp.maxHp;
+    const heal = !atFullHp && Math.random() < 0.45;
     if (heal) {
-        b.enemyHp = Math.min(stats.enemyMaxHp, b.enemyHp + stats.enemyHeal);
+        b.enemyHp = Math.min(opp.maxHp, b.enemyHp + opp.heal);
         playBattleAnimation('enemy', 'heal');
-        setMessage('Battle', `Reedpaw licks his wounds and recovers ${stats.enemyHeal} health.`);
+        setMessage('Battle', `${b.opponent} licks their wounds and recovers ${opp.heal} health.`);
     } else {
-        const damage = lowHp ? stats.enemyDmg + 1 : stats.enemyDmg;
-        b.playerHp -= damage;
+        b.playerHp -= opp.dmg;
         playBattleAnimation('player', 'scratch');
-        setMessage('Battle', lowHp
-            ? `Cornered, Reedpaw lashes out with everything he has for ${damage} damage!`
-            : `Reedpaw rakes his claws across you for ${damage} damage.`);
+        setMessage('Battle', `${b.opponent} rakes their claws across you for ${opp.dmg} damage.`);
     }
     b.turn = 'player';
     renderBattleUI();
@@ -1833,24 +1887,38 @@ function rand(min, max) {
 
 function endBattle(result) {
     const stats = game.battleStats;
-    game.battle.ended = true;
-    stats.playerMaxHp += rand(3, 5);
-    stats.playerDmg += rand(1, 2);
-    stats.enemyMaxHp += rand(1, 2);
-    stats.enemyDmg += rand(1, 2);
+    const b = game.battle;
+    const opp = game.opponents[b.opponent];
+    b.ended = true;
     if (result === 'win') {
-        addNote(`You won a sparring round against Reedpaw. (Now ${stats.playerMaxHp} HP, ${stats.playerDmg} damage.)`);
-        accusePanel.innerHTML = '<button id="rematchBtn" type="button">Battle Reedpaw Again</button><button id="leaveBattleBtn" type="button">Leave</button>';
-        document.getElementById('rematchBtn').addEventListener('click', startReedpawBattle);
-        document.getElementById('leaveBattleBtn').addEventListener('click', () => {
-            visitArea('fighting');
-        });
-        setMessage('Reedpaw', 'Reedpaw flops onto his side. "Mercy! Good fight, warrior."');
+        opp.wins += 1;
+        if (b.opponent === 'Rogue') {
+            game.rogueDefeated = true;
+            addNote('You drove the rogue off the border for good.');
+            accusePanel.innerHTML = '';
+            setMessage('Border', 'The rogue limps away into the bracken and vanishes past the river.');
+            renderCats();
+            return;
+        }
+        stats.playerMaxHp += rand(3, 5);
+        stats.playerDmg += rand(1, 2);
+        opp.maxHp += rand(1, 2);
+        opp.dmg += rand(1, 2);
+        const next = currentTrainingOpponent();
+        const advanced = next !== b.opponent;
+        addNote(`You won a sparring round against ${b.opponent}. (Now ${stats.playerMaxHp} HP, ${stats.playerDmg} damage.)`);
+        const label = advanced ? `Battle ${next}` : `Battle ${b.opponent} Again`;
+        accusePanel.innerHTML = `<button id="rematchBtn" type="button">${label}</button><button id="leaveBattleBtn" type="button">Leave</button>`;
+        document.getElementById('rematchBtn').addEventListener('click', () => startBattle(next));
+        document.getElementById('leaveBattleBtn').addEventListener('click', () => visitArea('fighting'));
+        setMessage(b.opponent, advanced
+            ? `${b.opponent} flops down. "Mercy! Good fight. ${next} wants a turn now."`
+            : `${b.opponent} flops down. "Mercy! Good fight, warrior."`);
         return;
     }
-    addNote('You were knocked out sparring with Reedpaw. Rosesong patched you up.');
+    addNote(`You were knocked out fighting ${b.opponent}. Rosesong patched you up.`);
     accusePanel.innerHTML = '';
-    setMessage('Battle', 'Reedpaw\'s last scratch puts you out cold...');
+    setMessage('Battle', `${b.opponent}'s last hit puts you out cold...`);
     setTimeout(() => {
         visitArea('camp');
         setTimeout(() => {
@@ -2496,6 +2564,14 @@ function movePlayer() {
     const viewportWidth = viewport.clientWidth;
     const cameraX = Math.max(0, Math.min(worldWidth - viewportWidth, playerState.x - viewportWidth * 0.44));
     world.style.transform = `translateX(${-cameraX}px)`;
+    if (game?.started
+        && !game.ghostMode
+        && game.currentArea === 'borders'
+        && !game.rogueDefeated
+        && (!game.battle || game.battle.ended)
+        && playerState.x > 2380) {
+        startBattle('Rogue');
+    }
     requestAnimationFrame(movePlayer);
 }
 
