@@ -70,7 +70,6 @@ function preyPileClick() {
             }
             game.preyPile -= 1;
             game.preyInMouth = true;
-            game.prey += 1;
             addNote(`You took a piece of prey from the pile. ${game.preyPile}/${PREY_PILE_MAX} left.`);
             setMessage('Prey Pile', `You pick a fresh mouse off the pile and carry it in your mouth. ${game.preyPile}/${PREY_PILE_MAX} left.`);
             accusePanel.innerHTML = '';
