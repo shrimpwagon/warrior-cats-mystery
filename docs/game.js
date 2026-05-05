@@ -2338,6 +2338,27 @@ function spawnMouse() {
     }, 2200);
 }
 
+function eatMouseInMouth() {
+    if (!game.preyInMouth || game.ghostMode) {
+        return;
+    }
+    game.preyInMouth = false;
+    if (game.battleStats) {
+        game.battleStats.playerMaxHp += 1;
+    }
+    addNote(`You ate the mouse. Max battle health is now ${game.battleStats?.playerMaxHp ?? '?'}.`);
+    setMessage(playerName(), `You eat the mouse. Strength settles into your bones — max health up by 1.`);
+    updateHud();
+}
+
+function downActionPressed() {
+    if (game.preyInMouth && (game.currentArea !== 'hunting' || !game.mouseVisible)) {
+        eatMouseInMouth();
+        return;
+    }
+    catchMouse();
+}
+
 function catchMouse() {
     if (!game.mouseVisible || game.currentArea !== 'hunting') {
         return;
@@ -3397,7 +3418,7 @@ mobileControls.querySelectorAll('.mobile-key').forEach((button) => {
         }
         if (key === 'ArrowDown') {
             keys.add(key);
-            catchMouse();
+            downActionPressed();
             return;
         }
         keys.add(key);
@@ -3419,7 +3440,7 @@ window.addEventListener('keydown', (event) => {
         jump();
     }
     if (['ArrowDown', 's', 'S'].includes(event.key)) {
-        catchMouse();
+        downActionPressed();
     }
 });
 
