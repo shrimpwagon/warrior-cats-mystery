@@ -829,6 +829,10 @@ function renderCats() {
             rogueNode.style.setProperty('--mark', '#1e1009');
             rogueNode.innerHTML = `${catMarkup()}<span class="nameplate">Rogue</span>`;
             rogueNode.addEventListener('click', () => {
+                if (game.ghostMode) {
+                    setMessage('Rogue', 'The rogue paces, oblivious. Ghosts cannot reach them.');
+                    return;
+                }
                 if (!game.battle || game.battle.ended) {
                     startBattle('Rogue');
                 }
@@ -860,6 +864,10 @@ function renderCats() {
         kittypetNode.dataset.catName = 'Smudge';
         kittypetNode.innerHTML = `${catMarkup()}<span class="collar"></span><span class="nameplate">Smudge</span>`;
         kittypetNode.addEventListener('click', () => {
+            if (game.ghostMode) {
+                setMessage('Smudge', 'Smudge tilts her head, sensing nothing. The living cannot hear ghosts.');
+                return;
+            }
             if (!game.kittypetMet) {
                 game.kittypetMet = true;
                 setMessage('Smudge (She-cat, Kittypet)', 'I am Smudge. I live with twolegs in the nest beyond this fence. They feed me out of a noisy can.');
@@ -1786,9 +1794,14 @@ function visitArea(area) {
             renderInvestigationActions();
         }
     } else if (area === 'hunting') {
-        setMessage('Hunting Grounds', 'Wait for a mouse, then press Down or S when it appears.');
-        accusePanel.innerHTML = '<button id="waitMouseBtn" type="button">Wait for Mouse</button>';
-        document.getElementById('waitMouseBtn').addEventListener('click', scheduleMouse);
+        if (game.ghostMode) {
+            setMessage('Hunting Grounds', 'Your starry paws drift past the prey. Hunting is for the living.');
+            accusePanel.innerHTML = '';
+        } else {
+            setMessage('Hunting Grounds', 'Wait for a mouse, then press Down or S when it appears.');
+            accusePanel.innerHTML = '<button id="waitMouseBtn" type="button">Wait for Mouse</button>';
+            document.getElementById('waitMouseBtn').addEventListener('click', scheduleMouse);
+        }
     } else if (area === 'moonpool') {
         accusePanel.innerHTML = game.ghostMode || game.moonpoolDone ? '' : '<button id="moonpoolBtn" type="button">Receive Starclan Lives</button>';
         if (!game.moonpoolDone && !game.ghostMode) {
@@ -1840,6 +1853,10 @@ function opponentIntro(name) {
 }
 
 function startBattle(opponentName) {
+    if (game.ghostMode) {
+        setMessage('Battle', 'Your starry claws pass through them. Ghosts cannot fight the living.');
+        return;
+    }
     ensureOpponents();
     const opp = game.opponents[opponentName];
     const stats = game.battleStats;
@@ -2001,6 +2018,10 @@ function tttHostName() {
 }
 
 function openTicTacToe() {
+    if (game.ghostMode) {
+        setMessage('Border Stones', 'Your paws cannot move the stones any longer. The living play this game.');
+        return;
+    }
     accusePanel.innerHTML = '<div id="tttBoard" class="ttt-board"></div>';
     const board = document.getElementById('tttBoard');
     const cells = Array(9).fill('');
