@@ -165,7 +165,7 @@ const firstLines = {
 const denDetails = {
     'Leader Den': ['A quiet stone-scented den tucked behind Highrock. Empty for now.', '<div class="nest"></div><div class="nest"></div>', []],
     Nursery: ['Warm moss and soft bracken. A small kit is curled tight, fast asleep.', '<div class="nest"></div>', ['Snowkit']],
-    'Warrior Den': ['Crowded nests ring the walls. Once you are a warrior, you can sleep here to advance time.', '<div class="nest"></div><div class="nest"></div><div class="nest"></div>', ['Birchstep', 'Hollyfoot']],
+    'Warrior Den': ['Crowded nests ring the walls. Once you are a warrior, you can sleep here to advance time.', '<div class="nest"></div><div class="nest"></div><div class="nest"></div>', ['Birchstep', 'Hollyfoot', 'Brindleleaf', 'Cloudspark', 'Sorreltail']],
     'Elder Den': ['Dry leaves and old stories fill the air.', '<div class="nest"></div><div class="nest"></div>', ['Oakwhisker']],
     'Medicine Den': ['A leafy den woven from ferns, ivy, and sweet-smelling herbs.', '<div class="leaf-pile"></div><div class="herb-bundle"></div>', ['Rosesong']]
 };
@@ -1040,7 +1040,7 @@ function renderCats() {
         const grave = document.createElement('button');
         grave.type = 'button';
         grave.className = 'willowfur-grave';
-        grave.style.left = '180px';
+        grave.style.left = '2700px';
         grave.style.bottom = `${groundY}px`;
         grave.innerHTML = '<span class="grave-stone"></span><span class="grave-flower"></span><span class="grave-name">Willowfur</span>';
         grave.addEventListener('click', () => {
@@ -1056,9 +1056,6 @@ function renderCats() {
 
         if (shouldShowLivingCat('Brindleleaf')) {
             addNpc('Brindleleaf', 'Warrior', 760, groundY, '#a76d3f', '#4d2d1c', () => setMessage('Brindleleaf (Tom)', rotatingText('Brindleleaf', ['Stay downwind of the mouse path.', 'The river is too deep to swim.', 'Ferns hide both prey and trouble.'])));
-        }
-        if (shouldShowLivingCat('Sorreltail')) {
-            addNpc('Sorreltail', 'Warrior', 980, groundY, '#c55f45', '#f0b172', () => speak(cast.find((cat) => cat.name === 'Sorreltail')));
         }
         renderGhostCats();
         return;
