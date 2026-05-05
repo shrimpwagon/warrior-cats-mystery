@@ -736,8 +736,13 @@ function renderCats() {
     }
 
     if (game.currentArea === 'borders') {
+        const mistclawGone = game.firstSolved && firstMurderer === 'Mistclaw';
         if (shouldShowLivingCat('Cloudspark')) {
-            addNpc('Cloudspark', 'Warrior', 760, groundY, '#f0eee1', '#c4b892', () => setMessage('Cloudspark (She-cat)', rotatingText('Cloudspark', ['Sunclan scent is fresh here.', 'Stay behind the river line.', 'The border stones shifted in the rain.'])));
+            const x = mistclawGone ? 1030 : 760;
+            const lines = mistclawGone
+                ? ['I keep the border now that Mistclaw is gone.', 'Patrols still need to prove themselves out here.', 'Want a paw-game on the stones? I learned it from Mistclaw.']
+                : ['Sunclan scent is fresh here.', 'Stay behind the river line.', 'The border stones shifted in the rain.'];
+            addNpc('Cloudspark', 'Warrior', x, groundY, '#f0eee1', '#c4b892', () => setMessage('Cloudspark (She-cat)', rotatingText('Cloudspark', lines)));
         }
         if (shouldShowLivingCat('Mistclaw')) {
             addNpc('Mistclaw', 'Warrior', 1030, groundY, '#8fa0a6', '#eef6f5', () => setMessage('Mistclaw (Tom)', rotatingText('Mistclaw', ['This is where patrols prove themselves.', 'Do not step into Sunclan territory.', 'Want a paw-game on the stones?'])));
@@ -1855,6 +1860,10 @@ function endBattle(result) {
     }, 900);
 }
 
+function tttHostName() {
+    return game.firstSolved && firstMurderer === 'Mistclaw' ? 'Cloudspark' : 'Mistclaw';
+}
+
 function openTicTacToe() {
     accusePanel.innerHTML = '<div id="tttBoard" class="ttt-board"></div>';
     const board = document.getElementById('tttBoard');
@@ -1891,7 +1900,7 @@ function openTicTacToe() {
     }
 
     draw();
-    setMessage('Mistclaw', 'Press your paw onto the stones as X. I will play O.');
+    setMessage(tttHostName(), `Press your paw onto the stones as X. I will play O.`);
 }
 
 function finishTicTacToe(cells) {
@@ -1902,7 +1911,7 @@ function finishTicTacToe(cells) {
     }
     if (winner !== 'X') {
         accusePanel.innerHTML = '';
-        setMessage('Mistclaw', 'Better luck next time. Step up to the stones again whenever you want.');
+        setMessage(tttHostName(), 'Better luck next time. Step up to the stones again whenever you want.');
         return true;
     }
     game.ticTacToeDone = true;
@@ -1911,9 +1920,9 @@ function finishTicTacToe(cells) {
         game.roseWon = true;
         game.rose = true;
         addNote('Mistclaw gave you a special rose for finishing border tic-tac-toe.');
-        setMessage('Mistclaw', 'Good job. You win. Take this special rose.');
+        setMessage(tttHostName(), 'Good job. You win. Take this special rose.');
     } else {
-        setMessage('Mistclaw', 'Good job. You win again, though I have no more roses to give.');
+        setMessage(tttHostName(), 'Good job. You win again, though I have no more roses to give.');
     }
     renderAreas();
     updateHud();
