@@ -221,7 +221,7 @@ p {
 }
 
 .world.scene-sunclan::after {
-    left: 500px;
+    left: 1740px;
     width: 260px;
     transform: rotate(-7deg);
 }
@@ -1226,6 +1226,22 @@ p {
     color: rgba(255, 255, 255, 0.65);
     font-size: 0.95rem;
     font-style: italic;
+    animation: zFloat 3.6s ease-in-out infinite;
+}
+
+.cat.sleeping-cat {
+    animation: kitBreathe 3.6s ease-in-out infinite;
+}
+
+.cat.sleeping-cat::before {
+    content: "z";
+    position: absolute;
+    top: -8px;
+    right: 0;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1rem;
+    font-style: italic;
+    z-index: 5;
     animation: zFloat 3.6s ease-in-out infinite;
 }
 

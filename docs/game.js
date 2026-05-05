@@ -71,6 +71,7 @@ const extraCats = {
     Mosskit: { rank: 'Kit', gender: 'She-cat', fur: '#ded8c4', mark: '#857d67' },
     Tinykit: { rank: 'Kit', gender: 'She-cat', fur: '#514132', mark: '#b8a087' },
     Snowkit: { rank: 'Kit', gender: 'She-cat', fur: '#f0eee8', mark: '#cfd6dc' },
+    Mosspaw: { rank: 'Medicine Cat Apprentice', gender: 'She-cat', fur: '#ded8c4', mark: '#857d67' },
     Birchstep: { rank: 'Warrior', gender: 'Tom', fur: '#9b8260', mark: '#574330' },
     Hollyfoot: { rank: 'Warrior', gender: 'She-cat', fur: '#3e3a36', mark: '#7d8b7e' },
     Reedpaw: { rank: 'Apprentice', gender: 'Tom', fur: '#7c5a38', mark: '#d6b073' },
@@ -96,7 +97,7 @@ const firstLines = {
 
 const denDetails = {
     'Leader Den': ['A quiet stone-scented den tucked behind Highrock. Empty for now.', '<div class="nest"></div><div class="nest"></div>', []],
-    Nursery: ['Warm moss and soft bracken. A small kit is curled tight, fast asleep.', '<div class="nest"></div><div class="inside-kit one sleeping"></div>', ['Snowkit']],
+    Nursery: ['Warm moss and soft bracken. A small kit is curled tight, fast asleep.', '<div class="nest"></div>', ['Snowkit']],
     'Warrior Den': ['Crowded nests ring the walls. Once you are a warrior, you can sleep here to advance time.', '<div class="nest"></div><div class="nest"></div><div class="nest"></div>', ['Birchstep', 'Hollyfoot']],
     'Elder Den': ['Dry leaves and old stories fill the air.', '<div class="nest"></div><div class="nest"></div>', ['Oakwhisker']],
     'Medicine Den': ['A leafy den woven from ferns, ivy, and sweet-smelling herbs.', '<div class="leaf-pile"></div><div class="herb-bundle"></div>', ['Rosesong']]
@@ -550,8 +551,8 @@ function resetGame(showOverlay = true) {
         opponents: {
             Reedpaw: { maxHp: 20, dmg: 5, heal: 3, wins: 0 },
             Fernpaw: { maxHp: 35, dmg: 9, heal: 5, wins: 0 },
-            Pinefoot: { maxHp: 55, dmg: 14, heal: 7, wins: 0 },
-            Ravenstripe: { maxHp: 55, dmg: 15, heal: 7, wins: 0 },
+            Pinefoot: { maxHp: 55, dmg: 14, heal: 1, wins: 0 },
+            Ravenstripe: { maxHp: 55, dmg: 15, heal: 1, wins: 0 },
             Rogue: { maxHp: 60, dmg: 19, heal: 20, wins: 0 }
         },
         rogueDefeated: false,
@@ -720,6 +721,10 @@ function renderAll() {
     if (notebookBtn) {
         notebookBtn.hidden = Boolean(game.firstSolved);
     }
+    const inventoryBtn = document.getElementById('inventoryBtn');
+    if (inventoryBtn) {
+        inventoryBtn.hidden = !game.firstSolved;
+    }
     renderCats();
     renderAreas();
     updateHud();
@@ -741,7 +746,12 @@ function renderCats() {
     if (game.currentArea === 'fighting') {
         addExtraNpc('Reedpaw', 760, groundY, () => setMessage('Reedpaw (Tom)', rotatingText('Reedpaw', ['Watch this battle move!', 'Fernpaw says I kick too much dust.', 'One day I will guard the border.'])));
         addExtraNpc('Fernpaw', 900, groundY, () => setMessage('Fernpaw (She-cat)', rotatingText('Fernpaw', ['Press hard, turn fast, never show your belly.', 'Reedpaw brags too much.', 'Training dust gets everywhere.'])));
-        if (shouldShowLivingCat('Pinefoot')) {
+        if (game.firstSolved && firstMurderer === 'Pinefoot') {
+            const ravenCat = cast.find((cat) => cat.name === 'Ravenstripe');
+            if (ravenCat && shouldShowLivingCat('Ravenstripe')) {
+                addNpc('Ravenstripe', 'Warrior', 1120, groundY, ravenCat.fur, ravenCat.mark, () => setMessage('Ravenstripe (Tom)', rotatingText('RavenstripeFight', ['I will sharpen any warrior willing to spar.', 'Pinefoot used to teach here. I do my best to fill her place.', 'Claws sheathed. Pride too.'])));
+            }
+        } else if (shouldShowLivingCat('Pinefoot')) {
             addNpc('Pinefoot', 'Warrior', 1120, groundY, '#6a4d34', '#263d23', () => setMessage('Pinefoot (She-cat)', rotatingText('Pinefoot', ['Keep your claws sheathed for practice.', 'Good footwork wins fights.', 'The apprentices are improving.'])));
         }
         renderGhostCats();
@@ -887,7 +897,8 @@ function renderCats() {
                 askForCatMate(SMUDGE_CAT);
                 return;
             }
-            setMessage('Smudge (She-cat, Kittypet)', rotatingText('Smudge', [
+            const trustShown = Math.min(3, game.smudgeClicks);
+            setMessage(`Smudge (She-cat, Kittypet — trust ${trustShown}/3)`, rotatingText('Smudge', [
                 'My twolegs play soft music at sunhigh. The walls hum with it.',
                 'The fence is warm under my paws. Sometimes I sit here for whole sunrises.',
                 'A bigger kittypet from another nest hisses at me through the wires. I hiss back.',
@@ -964,6 +975,9 @@ function renderCampKits() {
         if (!shouldShowLivingCat(name)) {
             return;
         }
+        if (kit.base === 'Moss' && stage !== 'kit') {
+            return;
+        }
         const kitSpots = [620, 1240, 1900, 2440, 760, 1520, 2240];
         const apprenticeSpots = [580, 1200, 1880, 2380, 760];
         const warriorSpots = [1780, 1960, 2160, 2360, 1880];
@@ -973,11 +987,27 @@ function renderCampKits() {
                 ? apprenticeSpots[index % apprenticeSpots.length]
                 : kitSpots[index % kitSpots.length];
         const genderLabel = kit.gender ? ` (${kit.gender})` : '';
-        addNpc(name, stage === 'warrior' ? 'Warrior' : stage === 'apprentice' ? 'Apprentice' : 'Kit', x, groundY, kit.fur, kit.mark, () => setMessage(`${name}${genderLabel}`, rotatingText(name, [
-            stage === 'kit' ? `${name} tumbles through the clearing.` : `${name} asks to practice patrol steps.`,
-            stage === 'warrior' ? `${name} says, "I can go on patrol now."` : `${name} bats at a moss scrap.`,
-            `${name} smells of warm moss and milk.`
-        ])));
+        let lines;
+        if (stage === 'kit') {
+            lines = [
+                `${name} tumbles through the clearing.`,
+                `${name} bats at a moss scrap.`,
+                `${name} smells of warm moss and milk.`
+            ];
+        } else if (stage === 'apprentice') {
+            lines = [
+                `${name} stretches into a battle crouch. "Watch how low I can go!"`,
+                `${name} says, "Take me out for a real hunt soon."`,
+                `${name} murmurs, "I want to earn my warrior name before greenleaf ends."`
+            ];
+        } else {
+            lines = [
+                `${name} says, "I can join any patrol you need."`,
+                `${name} stretches their shoulders. "I will keep the borders sharp."`,
+                `${name} dips their head. "Honor the warrior code."`
+            ];
+        }
+        addNpc(name, stage === 'warrior' ? 'Warrior' : stage === 'apprentice' ? 'Apprentice' : 'Kit', x, groundY, kit.fur, kit.mark, () => setMessage(`${name}${genderLabel}`, rotatingText(name, lines)));
     });
 }
 
@@ -1370,11 +1400,14 @@ function speak(cat) {
         let pool;
         if (trustLvl >= 3 && canMateWith(cat) && flirtyLines[cat.name]) {
             pool = flirtyLines[cat.name];
-        } else if (trustLvl >= 2 && friendlyLines[cat.name]) {
+        } else if (trustLvl >= 3 && friendlyLines[cat.name]) {
             pool = friendlyLines[cat.name];
         } else {
+            const fallback = cat.name === 'Ashfall'
+                ? `${cat.name} dips his head. "I will be a steady deputy for as long as the clan needs me."`
+                : firstLines[cat.name]?.[1] || 'They flick their tail in greeting.';
             pool = [
-                firstLines[cat.name]?.[1] || 'They flick their tail in greeting.',
+                fallback,
                 'The camp feels different today.',
                 'Keep your ears open. Every day changes the forest.'
             ];
@@ -1616,7 +1649,7 @@ function endInvestigationDay() {
     bumpDayTimer();
 }
 
-const AUTO_DAY_MS = 4 * 60 * 1000;
+const AUTO_DAY_MS = 3 * 60 * 1000;
 
 function bumpDayTimer() {
     if (!game) {
@@ -1663,7 +1696,11 @@ function enterDen(name) {
     denInterior.querySelector('.interior-scene').classList.toggle('leafy', name === 'Medicine Den' || name === 'Nursery');
 
     const denCatLayer = document.getElementById('denCatLayer');
-    detail[2].filter((catName) => !(game.ashstarLeader && catName === 'Whiskerstar'))
+    let denCats = detail[2].slice();
+    if (name === 'Medicine Den' && mosskitMedicineCat()) {
+        denCats = [...denCats, 'Mosspaw'];
+    }
+    denCats.filter((catName) => !(game.ashstarLeader && catName === 'Whiskerstar'))
         .filter((catName) => shouldShowLivingCat(catName))
         .forEach((catName, index) => {
         addDenCat(denCatLayer, catName, 70 + index * 145, () => talkInsideDen(catName));
@@ -1685,7 +1722,7 @@ function addDenCat(layer, name, x, handler) {
     const fullCat = cast.find((cat) => cat.name === name) || extraCats[name] || { rank: 'Cat', gender: 'Unknown', fur: '#9b7350', mark: '#5d3f2c' };
     const node = document.createElement('button');
     node.type = 'button';
-    node.className = 'cat npc den-cat';
+    node.className = `cat npc den-cat${name === 'Snowkit' ? ' sleeping-cat' : ''}`;
     node.style.left = `${x}px`;
     node.style.bottom = '28px';
     node.style.setProperty('--fur', fullCat.fur);
@@ -1760,6 +1797,11 @@ function talkInsideDen(name) {
             'Rosesong sorts herbs. "The Moonpool will show what the living miss."',
             'Rosesong holds out a sprig of catmint. "If a cough comes, find me before sunset."',
             'Rosesong studies you a moment. "Your spirit feels strong today. Hold onto that."'
+        ],
+        Mosspaw: [
+            'Mosspaw bundles dried marigold leaves. "These are for scratches. I packed them this morning."',
+            'Mosspaw says, "Rosesong is teaching me which herbs grow near the river stones."',
+            'Mosspaw whispers, "Sometimes I dream of Starclan. Rosesong says it is a good sign."'
         ]
     };
     const fullCat = cast.find((cat) => cat.name === name) || extraCats[name];
@@ -1836,9 +1878,19 @@ function visitArea(area) {
     } else if (area === 'fighting') {
         setMessage('Fighting Grounds', 'Reedpaw and Fernpaw train with moss balls and quick battle turns.');
         if (!game.ghostMode) {
-            const opponent = currentTrainingOpponent();
-            accusePanel.innerHTML = `<button id="fightOpponentBtn" type="button">Battle ${opponent}</button>`;
-            document.getElementById('fightOpponentBtn').addEventListener('click', () => startBattle(opponent));
+            ensureOpponents();
+            const opts = [];
+            if (game.opponents.Reedpaw.wins < 4) {
+                opts.push('Reedpaw');
+            } else if (game.opponents.Fernpaw.wins < 1) {
+                opts.push('Reedpaw', 'Fernpaw');
+            } else {
+                opts.push(firstMurderer === 'Pinefoot' ? 'Ravenstripe' : 'Pinefoot');
+            }
+            accusePanel.innerHTML = opts.map((name) => `<button class="fightOpponentBtn" data-opponent="${name}" type="button">Battle ${name}</button>`).join('');
+            accusePanel.querySelectorAll('.fightOpponentBtn').forEach((btn) => {
+                btn.addEventListener('click', () => startBattle(btn.dataset.opponent));
+            });
         }
     }
 }
@@ -1848,8 +1900,8 @@ function ensureOpponents() {
         game.opponents = {
             Reedpaw: { maxHp: 20, dmg: 5, heal: 3, wins: 0 },
             Fernpaw: { maxHp: 35, dmg: 9, heal: 5, wins: 0 },
-            Pinefoot: { maxHp: 55, dmg: 14, heal: 7, wins: 0 },
-            Ravenstripe: { maxHp: 55, dmg: 15, heal: 7, wins: 0 },
+            Pinefoot: { maxHp: 55, dmg: 14, heal: 1, wins: 0 },
+            Ravenstripe: { maxHp: 55, dmg: 15, heal: 1, wins: 0 },
             Rogue: { maxHp: 60, dmg: 19, heal: 20, wins: 0 }
         };
     }
@@ -2189,11 +2241,23 @@ function proposeMate(name) {
     if (!game.rose || trustFor(name) < 3 || game.mate || !cat || !canMateWith(cat)) {
         return;
     }
-    game.rose = false;
-    game.mate = name;
-    addNote(`${name} became your mate after you gave the special rose.`);
-    setMessage(name, `${name} accepts the special rose. "Yes. I will be your mate."`);
-    updateHud();
+    const previousPanel = accusePanel.innerHTML;
+    accusePanel.innerHTML = '<button id="roseYesBtn" type="button">Yes, give the rose</button><button id="roseNoBtn" type="button">No, keep talking</button>';
+    document.getElementById('roseYesBtn').addEventListener('click', () => {
+        game.rose = false;
+        game.mate = name;
+        addNote(`${name} became your mate after you gave the special rose.`);
+        setMessage(name, `${name} accepts the special rose. "Yes. I will be your mate."`);
+        accusePanel.innerHTML = previousPanel;
+        updateHud();
+    });
+    document.getElementById('roseNoBtn').addEventListener('click', () => {
+        accusePanel.innerHTML = previousPanel;
+        const trustLine = ` Trust ${trustFor(name)}/3.`;
+        const pool = flirtyLines[name] || friendlyLines[name] || ['They flick their tail in greeting.'];
+        setMessage(`${name} (${cat.gender})`, `${rotatingText(`${name}-rosekept`, pool)}${trustLine}`);
+    });
+    setMessage(`${name} (${cat.gender})`, `Do you want to give the special rose to ${name} and ask them to be your mate?`);
 }
 
 function tellClanAboutSmudge() {
@@ -2269,7 +2333,7 @@ function sleepInWarriorDen() {
     }
     bumpDayTimer();
     game.day += 1;
-    if (!game.ghostMode && game.day >= 40) {
+    if (!game.ghostMode && game.day >= 45) {
         endOldAge();
         return;
     }
@@ -2413,7 +2477,7 @@ function patrolOptions() {
         .filter((cat) => ['Warrior', 'Leader'].includes(cat.rank) && !['Whiskerstar', 'Ashstar', firstMurderer].includes(cat.name))
         .map((cat) => cat.name);
     const grownNursery = game.nurseryKitAges
-        .filter((kit) => growthStage(kit.bornDay) !== 'kit')
+        .filter((kit) => growthStage(kit.bornDay) !== 'kit' && kit.base !== 'Moss')
         .map((kit) => `${kit.base}${growthStage(kit.bornDay) === 'warrior' ? 'heart' : 'paw'}`);
     const grownPlayerKits = game.playerKits
         .filter((kit) => growthStage(kit.bornDay) !== 'kit')
@@ -2438,6 +2502,11 @@ function sendPatrol() {
         : '';
     setMessage('Patrol', `${game.patrolSelected.join(', ')} head out. They will return tomorrow with news.${warning}`);
     renderCats();
+}
+
+function mosskitMedicineCat() {
+    const moss = (game.nurseryKitAges || []).find((kit) => kit.base === 'Moss');
+    return moss && growthStage(moss.bornDay) !== 'kit';
 }
 
 function findClanCatData(name) {
@@ -2624,11 +2693,20 @@ function updateKitsTimeline() {
         const stage = growthStage(kit.bornDay);
         if (stage === 'apprentice' && !kit.apprenticeAnnounced) {
             kit.apprenticeAnnounced = true;
-            addNote(`${kit.base}kit became ${kit.base}paw.`);
-            apprenticeNames.push(`${kit.base}kit is now ${kit.base}paw`);
+            if (kit.base === 'Moss') {
+                addNote('Mosskit became Mosspaw, Rosesong\'s medicine cat apprentice.');
+                apprenticeNames.push('Mosskit is now Mosspaw, apprenticed to Rosesong as a medicine cat');
+            } else {
+                addNote(`${kit.base}kit became ${kit.base}paw.`);
+                apprenticeNames.push(`${kit.base}kit is now ${kit.base}paw`);
+            }
         }
         if (stage === 'warrior' && !kit.warriorAnnounced) {
             kit.warriorAnnounced = true;
+            if (kit.base === 'Moss') {
+                // Mosspaw stays as a medicine cat apprentice; no warrior name.
+                return;
+            }
             addNote(`${kit.base}paw earned a warrior name.`);
             warriorNames.push(`${kit.base}paw is now ${kit.base}heart`);
         }
@@ -2764,7 +2842,7 @@ function touchesRiver(x) {
     const rivers = {
         borders: [1485, 1660],
         hunting: [2390, 2580],
-        sunclan: [520, 700]
+        sunclan: [1760, 1940]
     };
     const range = rivers[game.currentArea];
     return Boolean(range && x >= range[0] && x <= range[1]);
@@ -2784,6 +2862,66 @@ document.querySelectorAll('.evidence').forEach((item) => {
 if (furBush) {
     furBush.addEventListener('click', openFurBush);
 }
+
+const inventoryBtnEl = document.getElementById('inventoryBtn');
+if (inventoryBtnEl) {
+    inventoryBtnEl.addEventListener('click', openInventory);
+}
+
+function openInventory() {
+    if (!game?.started || !game.firstSolved) return;
+    const items = [];
+    if (game.rose) items.push('rose');
+    if (game.preyInMouth) items.push('prey');
+    if (items.length === 0) {
+        setMessage('Inventory', 'Your inventory is empty.');
+        return;
+    }
+    accusePanel.innerHTML = items.map((it) => `<button class="invItemBtn" data-item="${it}" type="button">${it === 'rose' ? 'Special Rose' : 'Mouse (in mouth)'}</button>`).join('') + '<button id="invCloseBtn" type="button">Close</button>';
+    accusePanel.querySelectorAll('.invItemBtn').forEach((btn) => {
+        btn.addEventListener('click', () => offerItemAction(btn.dataset.item));
+    });
+    document.getElementById('invCloseBtn').addEventListener('click', () => {
+        visitArea(game.currentArea);
+    });
+    setMessage('Inventory', 'Click an item to drop or keep it.');
+}
+
+function offerItemAction(item) {
+    if (item !== 'rose') {
+        setMessage('Inventory', 'You keep the mouse for now.');
+        return;
+    }
+    const previous = accusePanel.innerHTML;
+    accusePanel.innerHTML = '<button id="dropRoseBtn" type="button">Drop the rose</button><button id="keepRoseBtn" type="button">Keep it</button>';
+    document.getElementById('dropRoseBtn').addEventListener('click', () => {
+        game.rose = false;
+        addNote('You dropped the special rose. It will not come back.');
+        setMessage('Inventory', 'You let the rose fall to the moss. It is gone for good.');
+        updateHud();
+        visitArea(game.currentArea);
+    });
+    document.getElementById('keepRoseBtn').addEventListener('click', () => {
+        accusePanel.innerHTML = previous;
+        setMessage('Inventory', 'You tuck the rose closer and keep it.');
+    });
+    setMessage('Special Rose', 'Drop or keep the rose? Once dropped, you cannot give it to a cat to be your mate.');
+}
+
+player.addEventListener('click', () => {
+    if (!game?.started) {
+        return;
+    }
+    const stats = game.battleStats || {};
+    const genderLabel = game.gender === 'tom' ? 'Tom'
+        : game.gender === 'she-cat' ? 'She-cat'
+        : game.gender === 'non-binary' ? 'Non-binary' : 'Cat';
+    const name = playerName();
+    const hpLine = stats.playerMaxHp ? `Health ${stats.playerMaxHp} HP, claw damage ${stats.playerDmg}, heal ${stats.playerHeal}.` : '';
+    const mateLine = game.mate ? ` Mate: ${game.mate}.` : '';
+    const dayLine = ` Day ${game.day}.`;
+    setMessage(`${name} (${genderLabel}, you)`, `${hpLine}${mateLine}${dayLine}`.trim());
+});
 if (furTuft) {
     furTuft.addEventListener('click', inspectFurTuft);
 }
