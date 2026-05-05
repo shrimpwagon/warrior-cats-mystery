@@ -80,7 +80,8 @@ const extraCats = {
     Russetfang: { rank: 'Sunclan Deputy', gender: 'Tom', fur: '#9f4f33', mark: '#f0a35d' }
 };
 
-const mateCandidates = new Set(['Mistclaw', 'Brindleleaf', 'Cloudspark', 'Sorreltail']);
+const mateCandidates = new Set(['Mistclaw', 'Brindleleaf', 'Cloudspark', 'Sorreltail', 'Smudge']);
+const SMUDGE_CAT = { name: 'Smudge', rank: 'Kittypet', gender: 'She-cat', fur: '#e8c895', mark: '#a86b3c' };
 
 const firstLines = {
     Whiskerstar: ['My ears heard anger by the medicine den. Willowfur hissed that someone had stolen prey.', 'A leader must see truth through fog. Ask who left camp with mud on their paws.'],
@@ -280,6 +281,21 @@ const flirtyLines = {
     ]
 };
 
+function kittypetReactionFor(name) {
+    const lines = {
+        Whiskerstar: 'Whiskerstar dips her head. "Love finds strange paths. The clan does not own your heart."',
+        Ashfall: 'Ashfall shrugs. "If she keeps you steady, that is enough for me."',
+        Mistclaw: 'Mistclaw flicks an ear. "A kittypet? Bold choice. I am happy if you are."',
+        Ravenstripe: 'Ravenstripe huffs. "A kittypet, hm. The clan will gossip about it until newleaf."',
+        Brindleleaf: 'Brindleleaf grins. "Bring her by the camp clearing. I want to meet her."',
+        Cloudspark: 'Cloudspark purrs warmly. "She must be brave. Tell her she is welcome here."',
+        Pinefoot: 'Pinefoot says softly, "Twoleg fence or no, love is love. Give her my regards."',
+        Sorreltail: 'Sorreltail tips her head. "I have river-stories that would make her tail puff. Bring her by."',
+        Ashstar: `Ashstar narrows her eyes. "A kittypet, ${warriorName()}? She does not know the warrior code. Be careful with this one."`
+    };
+    return lines[name];
+}
+
 function alibiFor(name) {
     if (name === firstMurderer) {
         return `${name} was seen near Willowfur's nest before moonhigh. They will not say why they were there.`;
@@ -458,6 +474,9 @@ function resetGame(showOverlay = true) {
         alibiUsed: false,
         furBushFound: false,
         kittypetMet: false,
+        smudgeClicks: 0,
+        kittypetMateRevealed: false,
+        kittypetReactionShown: {},
         trustReachedDay: {},
         battleStats: {
             playerMaxHp: 20,
@@ -745,12 +764,26 @@ function renderCats() {
         kittypetNode.style.bottom = `${groundY + 80}px`;
         kittypetNode.style.setProperty('--fur', '#e8c895');
         kittypetNode.style.setProperty('--mark', '#a86b3c');
+        kittypetNode.dataset.catName = 'Smudge';
         kittypetNode.innerHTML = `${catMarkup()}<span class="collar"></span><span class="nameplate">Smudge</span>`;
-        const kittypetFirstSeen = !game.kittypetMet;
         kittypetNode.addEventListener('click', () => {
-            if (kittypetFirstSeen && !game.kittypetMet) {
+            if (!game.kittypetMet) {
                 game.kittypetMet = true;
                 setMessage('Smudge (Kittypet)', 'I am Smudge. I live with twolegs in the nest beyond this fence. They feed me out of a noisy can.');
+                return;
+            }
+            if (game.mate === 'Smudge') {
+                setMessage('Smudge (Your mate)', rotatingText('SmudgeMate', [
+                    'Smudge purrs against your side. "I miss you when the twolegs lock me indoors at night."',
+                    'Smudge whispers, "I told the twolegs about you, but they only laughed."',
+                    'Smudge butts her head into your shoulder. "Stay a little longer."',
+                    'Smudge says, "Tell me what the camp smells like today. I want to picture it."'
+                ]));
+                return;
+            }
+            game.smudgeClicks = (game.smudgeClicks || 0) + 1;
+            if (game.firstSolved && !game.mate && game.smudgeClicks >= 3 && canMateWith(SMUDGE_CAT)) {
+                askForCatMate(SMUDGE_CAT);
                 return;
             }
             setMessage('Smudge (Kittypet)', rotatingText('Smudge', [
@@ -1130,6 +1163,14 @@ function showAccusationButtons() {
 function speak(cat) {
     if (!game.started) {
         return;
+    }
+    if (game.firstSolved && game.mate === 'Smudge' && game.kittypetMateRevealed && cat.name !== 'Smudge') {
+        const lookup = game.ashstarLeader && cat.name === 'Ashstar' ? 'Ashstar' : cat.name;
+        if (!game.kittypetReactionShown[lookup] && kittypetReactionFor(lookup)) {
+            game.kittypetReactionShown[lookup] = true;
+            setMessage(lookup, kittypetReactionFor(lookup));
+            return;
+        }
     }
     if (game.ashstarLeader && cat.name === 'Ashstar') {
         const pinefootKilled = firstMurderer === 'Pinefoot';
@@ -1639,6 +1680,10 @@ function visitArea(area) {
                 accusePanel.insertAdjacentHTML('beforeend', '<button id="givePreyCampBtn" type="button">Give Prey to Sorreltail</button>');
                 document.getElementById('givePreyCampBtn').addEventListener('click', () => givePrey('Sorreltail'));
             }
+            if (!game.ghostMode && game.mate === 'Smudge' && !game.kittypetMateRevealed) {
+                accusePanel.insertAdjacentHTML('beforeend', '<button id="tellClanBtn" type="button">Tell the clan about Smudge</button>');
+                document.getElementById('tellClanBtn').addEventListener('click', tellClanAboutSmudge);
+            }
             renderDeputyActions();
         } else {
             renderInvestigationActions();
@@ -1943,6 +1988,16 @@ function proposeMate(name) {
     addNote(`${name} became your mate after you gave the special rose.`);
     setMessage(name, `${name} accepts the special rose. "Yes. I will be your mate."`);
     updateHud();
+}
+
+function tellClanAboutSmudge() {
+    if (game.kittypetMateRevealed) {
+        return;
+    }
+    game.kittypetMateRevealed = true;
+    addNote('You told Moonclan that Smudge, a kittypet from beyond the fence, is your mate.');
+    setMessage('Moonclan', 'Word spreads through the camp. Some cats blink in surprise, others purr at the news. Talk to them and see how each one feels.');
+    visitArea('camp');
 }
 
 function askForCatMate(cat) {
