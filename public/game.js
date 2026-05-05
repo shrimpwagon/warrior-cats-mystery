@@ -723,6 +723,14 @@ function applyMysteryClues() {
 function startGame() {
     game.started = true;
     game.gender = currentGender;
+    game.playerPrefix = currentPrefix;
+    game.playerFurIndex = currentFurIndex;
+    game.playerFur = pelts[currentFurIndex].fur;
+    game.playerMark = pelts[currentFurIndex].mark;
+    if (player) {
+        player.style.setProperty('--fur', game.playerFur);
+        player.style.setProperty('--mark', game.playerMark);
+    }
     playOverlay.classList.add('fade-out');
     setTimeout(() => {
         playOverlay.hidden = true;
