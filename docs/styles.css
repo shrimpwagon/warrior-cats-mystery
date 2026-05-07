@@ -903,18 +903,22 @@ p {
     filter: brightness(0.78);
 }
 
-.world.raining::after {
-    content: "";
+.rain-overlay {
     position: absolute;
     inset: 0;
     pointer-events: none;
+    z-index: 30;
+    display: none;
+}
+
+.world.raining .rain-overlay {
+    display: block;
     background:
         repeating-linear-gradient(105deg,
             rgba(180, 200, 230, 0) 0 6px,
             rgba(180, 200, 230, 0.32) 6px 7px,
             rgba(180, 200, 230, 0) 7px 16px);
     animation: rainFall 0.55s linear infinite;
-    z-index: 30;
 }
 
 @keyframes rainFall {
