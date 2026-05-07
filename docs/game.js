@@ -1249,6 +1249,9 @@ function renderCampKits() {
         if (kit.base === 'Moss' && stage !== 'kit') {
             return;
         }
+        if (game.playerKits.includes(kit) && kit.bornDay === game.day) {
+            return;
+        }
         const kitSpots = [620, 1240, 1900, 2440, 760, 1520, 2240];
         const apprenticeSpots = [580, 1200, 1880, 2380, 760];
         const warriorSpots = [1780, 1960, 2160, 2360, 1880];
@@ -1258,21 +1261,37 @@ function renderCampKits() {
                 ? apprenticeSpots[index % apprenticeSpots.length]
                 : kitSpots[index % kitSpots.length];
         const genderLabel = kit.gender ? ` (${kit.gender})` : '';
+        const isPlayerKit = game.playerKits.includes(kit);
         let lines;
         if (stage === 'kit') {
-            lines = [
+            lines = isPlayerKit ? [
+                `${name} barrels into your legs and squeaks, "Carry me, carry me!"`,
+                `${name} bats at your tail. "I want to be just like you when I am big."`,
+                `${name} mews, "Tell me a story about the murderer. The clan one!"`,
+                `${name} sniffs at your fur. "You smell like outside. Take me with you next time?"`
+            ] : [
                 `${name} tumbles through the clearing.`,
                 `${name} bats at a moss scrap.`,
                 `${name} smells of warm moss and milk.`
             ];
         } else if (stage === 'apprentice') {
-            lines = [
+            lines = isPlayerKit ? [
+                `${name} bumps your shoulder. "Mentor me yourself today? Please?"`,
+                `${name} pretends to stalk a leaf. "Did I get low enough? Be honest."`,
+                `${name} says, "When I am a warrior I will sit beside you at every Gathering."`,
+                `${name} grins, "${game.mate} says I have your stubborn streak. I take it as a compliment."`
+            ] : [
                 `${name} stretches into a battle crouch. "Watch how low I can go!"`,
                 `${name} says, "Take me out for a real hunt soon."`,
                 `${name} murmurs, "I want to earn my warrior name before greenleaf ends."`
             ];
         } else {
-            lines = [
+            lines = isPlayerKit ? [
+                `${name} purrs. "I am ready for any patrol you put me on. You taught me well."`,
+                `${name} dips their head. "Whatever Moonclan needs. You and ${game.mate} raised me for this."`,
+                `${name} says, "If anything ever happens to you, I will keep our family safe. I promise."`,
+                `${name} smiles. "Sit with me a moment. I do not get to see my parent enough lately."`
+            ] : [
                 `${name} says, "I can join any patrol you need."`,
                 `${name} stretches their shoulders. "I will keep the borders sharp."`,
                 `${name} dips their head. "Honor the warrior code."`
@@ -2062,29 +2081,30 @@ function addDenCat(layer, name, x, handler) {
 }
 
 function renderPlayerKitsInDen(layer) {
-    if (denTitle.textContent !== 'Nursery' || !game.kitStage) {
+    if (denTitle.textContent !== 'Nursery') {
         return;
     }
-    game.kitNames.forEach((kitName, index) => {
-        const label = game.kitStage === 'warriors' ? kitName.replace('kit', 'heart') : game.kitStage === 'apprentices' ? kitName.replace('kit', 'paw') : kitName;
+    game.playerKits.forEach((kit, index) => {
+        if (kit.bornDay !== game.day) {
+            return;
+        }
+        const stage = growthStage(kit.bornDay);
+        const suffix = stage === 'warrior' ? 'heart' : stage === 'apprentice' ? 'paw' : 'kit';
+        const name = `${kit.base}${suffix}`;
         const node = document.createElement('button');
         node.type = 'button';
-        node.className = `cat npc den-cat player-kit ${game.kitStage}`;
+        node.className = 'cat npc den-cat player-kit sleeping-cat';
         node.style.left = `${420 + index * 110}px`;
-        node.style.bottom = game.kitStage === 'newborn' ? '18px' : '28px';
-        node.style.setProperty('--fur', [playerFur(), '#d9c39a', '#6d5440'][index]);
-        node.style.setProperty('--mark', [playerMark(), '#8b6a44', '#d6b073'][index]);
-        node.innerHTML = `${catMarkup()}<span class="nameplate">${label}</span>`;
+        node.style.bottom = '18px';
+        node.style.setProperty('--fur', kit.fur);
+        node.style.setProperty('--mark', kit.mark);
+        node.innerHTML = `${catMarkup()}<span class="nameplate">${name}</span>`;
         node.addEventListener('click', () => {
             if (game.ghostMode) {
-                setMessage(label, ghostFeelingLine(label));
+                setMessage(name, ghostFeelingLine(name));
                 return;
             }
-            setMessage(label, dailyText(label, [
-                `${label} tumbles over your paws.`,
-                `${label} asks when they can see the borders.`,
-                `${label} promises to be the bravest cat in Moonclan.`
-            ]));
+            setMessage(name, `${name} is curled tight beside ${game.mate}, breathing slow and steady. Just born — eyes still closed.`);
         });
         layer.appendChild(node);
     });
@@ -3571,9 +3591,9 @@ function updateKitsTimeline() {
                 gender: Math.random() < 0.5 ? 'Tom' : 'She-cat'
             });
         }
-        const text = playerCarriesKits() ? `You have ${kitCount} kit${kitCount === 1 ? '' : 's'} in camp.` : `${game.mate} has ${kitCount} kit${kitCount === 1 ? '' : 's'} in camp.`;
+        const text = playerCarriesKits() ? `You have ${kitCount} newborn kit${kitCount === 1 ? '' : 's'} in the nursery.` : `${game.mate} has ${kitCount} newborn kit${kitCount === 1 ? '' : 's'} in the nursery.`;
         addNote(text);
-        setMessage('Camp', `${text} They carry both your fur colors.`);
+        setMessage('Camp', `${text} They are asleep beside ${game.mate} for the day. Tomorrow they will toddle out into camp.`);
         game.kitsHad = true;
         game.expectingKits = false;
         game.kitsDueDay = null;
