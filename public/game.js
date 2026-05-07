@@ -2982,7 +2982,7 @@ function sleepInWarriorDen() {
         resolvePatrol();
         return;
     }
-    if (game.mate && game.mateDay != null && game.day >= game.mateDay + 10 && !game.kitsAsked && !game.kitsHad) {
+    if (game.mate && game.mateDay != null && game.day >= game.mateDay + 5 && !game.kitsAsked && !game.kitsHad) {
         askForKits();
         return;
     }
@@ -3537,7 +3537,7 @@ function askForKits() {
         document.getElementById('sleepBtn').addEventListener('click', sleepInWarriorDen);
         setMessage(game.mate, 'You decide to wait before having kits.');
     });
-    setMessage(game.mate, `Ten sunrises have passed since you became mates. Do you want to have kits with ${game.mate}?`);
+    setMessage(game.mate, `Five sunrises have passed since you became mates. Do you want to have kits with ${game.mate}?`);
 }
 
 function updateKitsTimeline() {
