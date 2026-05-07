@@ -124,14 +124,14 @@ let cast;
 let game;
 
 const baseCast = [
-    ['Whiskerstar', 'Leader', 'Tom', 308, 224, '#d6c9a8', '#7a674a', 'Whiskerstar saw Willowfur arguing near the medicine den before moonhigh.'],
-    ['Ashfall', 'Deputy', 'Tom', 506, 96, '#777a78', '#d4d4c8', 'Ashfall confirms Ravenstripe left the warrior den after everyone settled.'],
-    ['Mistclaw', 'Warrior', 'Tom', 1160, 90, '#8fa0a6', '#eef6f5', 'Mistclaw says the killer smelled of pine resin.'],
-    ['Ravenstripe', 'Warrior', 'Tom', 1660, 90, '#171717', '#4b4b4b', 'Ravenstripe seems calm but has a small scratch on one ear.'],
-    ['Brindleleaf', 'Warrior', 'Tom', 2060, 90, '#a76d3f', '#4d2d1c', 'Brindleleaf saw dark fur snagged on the elder den brambles.'],
-    ['Cloudspark', 'Warrior', 'She-cat', 2350, 90, '#f0eee1', '#c4b892', 'Cloudspark heard a splash from the muddy stream path after the attack.'],
-    ['Pinefoot', 'Warrior', 'She-cat', 2590, 90, '#6a4d34', '#263d23', 'Pinefoot says Ravenstripe handled pine resin while repairing the camp barrier.'],
-    ['Sorreltail', 'Warrior', 'She-cat', 760, 90, '#c55f45', '#f0b172', 'Sorreltail says Willowfur discovered stolen prey hidden under Ravenstripe’s nest.']
+    ['Whiskerstar', 'Leader', 'Tom', 308, 224, '#d6c9a8', '#7a674a', 'gold', '#f7df6e', 'Whiskerstar saw Willowfur arguing near the medicine den before moonhigh.'],
+    ['Ashfall', 'Deputy', 'Tom', 506, 96, '#777a78', '#d4d4c8', 'pale yellow', '#e8e26b', 'Ashfall confirms Ravenstripe left the warrior den after everyone settled.'],
+    ['Mistclaw', 'Warrior', 'Tom', 1160, 90, '#8fa0a6', '#eef6f5', 'sky blue', '#7ec4ff', 'Mistclaw says the killer smelled of pine resin.'],
+    ['Ravenstripe', 'Warrior', 'Tom', 1660, 90, '#171717', '#4b4b4b', 'amber', '#f5a83a', 'Ravenstripe seems calm but has a small scratch on one ear.'],
+    ['Brindleleaf', 'Warrior', 'Tom', 2060, 90, '#a76d3f', '#4d2d1c', 'leaf green', '#9bd86b', 'Brindleleaf saw dark fur snagged on the elder den brambles.'],
+    ['Cloudspark', 'Warrior', 'She-cat', 2350, 90, '#f0eee1', '#c4b892', 'icy blue', '#d8edff', 'Cloudspark heard a splash from the muddy stream path after the attack.'],
+    ['Pinefoot', 'Warrior', 'She-cat', 2590, 90, '#6a4d34', '#263d23', 'copper', '#e87a3a', 'Pinefoot says Ravenstripe handled pine resin while repairing the camp barrier.'],
+    ['Sorreltail', 'Warrior', 'She-cat', 760, 90, '#c55f45', '#f0b172', 'emerald', '#4dd07a', 'Sorreltail says Willowfur discovered stolen prey hidden under Ravenstripe’s nest.']
 ];
 
 const extraCats = {
@@ -159,14 +159,14 @@ const mateCandidates = new Set(['Mistclaw', 'Ravenstripe', 'Brindleleaf', 'Cloud
 const SMUDGE_CAT = { name: 'Princess', rank: 'Kittypet', gender: 'She-cat', fur: '#e8c895', mark: '#a86b3c' };
 
 const firstLines = {
-    Whiskerstar: ['My ears heard anger by the medicine den. Willowfur hissed that someone had stolen prey.', 'A leader must see truth through fog. Ask who left camp with mud on their paws.'],
-    Ashfall: ['I counted the nests. Ravenstripe slipped out after the camp went quiet. My mate Pinefoot was beside me asleep the whole night.', 'Find what clung to their pelt. The forest keeps receipts. Pinefoot would have noticed too if she had not been so tired.'],
-    Mistclaw: ['Willowfur brushed past me earlier. Later, the clearing smelled sharp with pine resin.', 'The hunting grounds are good for clearing fear from your chest.'],
+    Whiskerstar: ['My ears heard anger by the medicine den. Willowfur hissed at someone with {EYES} eyes — they had stolen prey.', 'A leader must see truth through fog. Look for the one whose eyes will not meet yours.'],
+    Ashfall: ['I counted the nests. A warrior with {EYES} eyes slipped out after the camp went quiet. My mate Pinefoot was beside me asleep the whole night.', 'Find what clung to their pelt. The forest keeps receipts. Pinefoot would have noticed too if she had not been so tired.'],
+    Mistclaw: ['Willowfur brushed past me earlier. Later, the clearing smelled sharp with pine resin — and a pair of {EYES} eyes flashed past me in the dark.', 'The hunting grounds are good for clearing fear from your chest.'],
     Ravenstripe: ['Such terrible news about Willowfur. I was asleep when it happened.', 'I hope they find whoever did this. The clan needs peace.'],
-    Brindleleaf: ['The elder den brambles caught a tuft of torn fur.', 'Warrior life means watching shadows even after the clan starts purring again.'],
-    Cloudspark: ['There was a splash by the stream path. Then pawsteps, heavy and fast.', 'The borders are quiet today, but quiet can still hide claws.'],
-    Pinefoot: ['Ravenstripe and I patched the pine-barrier. Resin stuck to his paws.', 'The fighting grounds are open now. Reedpaw and Fernpaw are always training.'],
-    Sorreltail: ['Willowfur found missing prey under Ravenstripe’s moss. She was going to tell Whiskerstar at dawn.', 'A fresh mouse can say more than a moon of boasting.']
+    Brindleleaf: ['The elder den brambles caught a tuft of torn fur. I looked up and met {EYES} eyes for half a heartbeat before they were gone.', 'Warrior life means watching shadows even after the clan starts purring again.'],
+    Cloudspark: ['There was a splash by the stream path. Then pawsteps, heavy and fast — and {EYES} eyes glinting back at me through the reeds.', 'The borders are quiet today, but quiet can still hide claws.'],
+    Pinefoot: ['Another warrior and I patched the pine-barrier. Resin stuck to their paws — I remember their {EYES} eyes more than anything else.', 'The fighting grounds are open now. Reedpaw and Fernpaw are always training.'],
+    Sorreltail: ['Willowfur found missing prey under a warrior\'s moss. She told me their eyes were {EYES} and she was going to tell Whiskerstar at dawn.', 'A fresh mouse can say more than a moon of boasting.']
 };
 
 const denDetails = {
@@ -187,7 +187,7 @@ const playerState = {
 };
 
 function freshCast() {
-    return baseCast.map(([name, rank, gender, x, bottom, fur, mark, clue]) => ({
+    return baseCast.map(([name, rank, gender, x, bottom, fur, mark, eyes, eyeColor, clue]) => ({
         name,
         rank,
         gender,
@@ -195,6 +195,8 @@ function freshCast() {
         bottom,
         fur,
         mark,
+        eyes,
+        eyeColor,
         clue
     }));
 }
@@ -714,25 +716,24 @@ function chooseMurderer() {
 function applyMysteryClues() {
     const culprit = firstMurderer;
     const culpritCat = cast.find((c) => c.name === culprit);
-    const color = culpritCat ? describeFur(culpritCat.fur) : 'dark';
-    const pronoun = culpritCat?.gender === 'She-cat' ? 'she-cat' : 'tom';
+    const eyes = culpritCat?.eyes || 'pale';
     cast.forEach((cat) => {
         if (cat.name === 'Whiskerstar') {
-            cat.clue = `Whiskerstar heard Willowfur arguing with a ${pronoun} of ${color} pelt before dawn. Whoever it was, Willowfur threatened to expose them.`;
+            cat.clue = `Whiskerstar heard Willowfur arguing with a cat before dawn. Their eyes caught the moonlight — ${eyes}. Willowfur threatened to expose them.`;
         } else if (cat.name === 'Ashfall') {
-            cat.clue = `Ashfall counted nests in the dark. One ${pronoun} slipped out after the camp settled — a ${color} pelt, faint in the moonlight.`;
+            cat.clue = `Ashfall watched the warrior den after dark. One cat slipped out and turned back once — eyes flashed ${eyes} in the starlight before they vanished into the brambles.`;
         } else if (cat.name === 'Mistclaw') {
-            cat.clue = `Mistclaw says the killer reeked of pine resin. Their fur looked ${color} where it caught the moon.`;
+            cat.clue = `Mistclaw says the killer reeked of pine resin and stared straight at him as they passed. He remembers ${eyes} eyes, and nothing else.`;
         } else if (cat.name === culprit) {
-            cat.clue = `${cat.name} stays oddly calm for a clan in mourning. A fresh scratch is healing on one ear.`;
+            cat.clue = `${cat.name} stays oddly calm for a clan in mourning. A fresh scratch is healing on one ear, and they avoid your gaze.`;
         } else if (cat.name === 'Brindleleaf') {
-            cat.clue = `Brindleleaf says fur was snagged on the elder den brambles. The shade was ${color} — not a common pelt in camp.`;
+            cat.clue = `Brindleleaf says fur was snagged on the elder den brambles. He looked up in time to see ${eyes} eyes blink and disappear into the dark.`;
         } else if (cat.name === 'Cloudspark') {
-            cat.clue = `Cloudspark heard pawsteps splashing back through the mud after the attack, racing toward a ${color} cat's nest.`;
+            cat.clue = `Cloudspark heard pawsteps splash through the mud after the attack. She glimpsed ${eyes} eyes glinting at her over the stream before the cat fled.`;
         } else if (cat.name === 'Pinefoot') {
-            cat.clue = `Pinefoot says only a few cats handled pine resin while repairing the camp barrier this moon — and one of them was a ${color} ${pronoun}.`;
+            cat.clue = `Pinefoot says only a few cats helped repair the camp barrier this moon. The one who handled the pine resin had ${eyes} eyes — she remembers that much.`;
         } else if (cat.name === 'Sorreltail') {
-            cat.clue = `Sorreltail says Willowfur found stolen prey hidden under a ${color} warrior's nest. They were furious about it.`;
+            cat.clue = `Sorreltail says Willowfur was furious about stolen prey hidden in a warrior's nest. The warrior in question had ${eyes} eyes — Willowfur said so the night before she died.`;
         }
     });
 }
@@ -1305,7 +1306,9 @@ function addNpc(name, rank, x, bottom, fur, mark, handler) {
     node.style.bottom = `${bottom}px`;
     node.style.setProperty('--fur', fur);
     node.style.setProperty('--mark', mark);
-    node.style.setProperty('--eye', rank === 'Leader' ? '#f7df6e' : '#b7f2a0');
+    const castEntry = cast?.find((c) => c.name === name);
+    const eyeHex = castEntry?.eyeColor || (rank === 'Leader' ? '#f7df6e' : '#b7f2a0');
+    node.style.setProperty('--eye', eyeHex);
     node.innerHTML = `${catMarkup()}<span class="nameplate">${name}</span>`;
     node.addEventListener('click', () => {
         if (game?.ghostMode && rank !== 'Starclan' && !isDeadCatName(name)) {
@@ -1680,7 +1683,8 @@ function speak(cat) {
         return;
     }
 
-    const line = (firstLines[cat.name]?.[questioned.has(cat.name) ? 1 : 0] || 'They twitch their whiskers.').replaceAll('Ravenstripe', firstMurderer);
+    const culpritEyes = cast.find((c) => c.name === firstMurderer)?.eyes || 'pale';
+    const line = (firstLines[cat.name]?.[questioned.has(cat.name) ? 1 : 0] || 'They twitch their whiskers.').replaceAll('{EYES}', culpritEyes);
     if (!questioned.has(cat.name) && questioned.size < 2) {
         addNote(`${cat.rank} ${cat.name}: ${cat.clue}`);
     }
