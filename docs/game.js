@@ -3014,6 +3014,12 @@ function sleepInWarriorDen() {
     bumpDayTimer();
     game.day += 1;
     decayPreyPile();
+    if (game.ghostMode && game.ghostStartDay != null) {
+        const sinceGhost = game.day - game.ghostStartDay;
+        if (sinceGhost > 0 && sinceGhost % 2 === 0) {
+            game.preyPile = Math.min(PREY_PILE_MAX, (game.preyPile || 0) + 10);
+        }
+    }
     updatePreyPileLabel();
     if (!game.ghostMode && game.day >= 45) {
         endOldAge();
