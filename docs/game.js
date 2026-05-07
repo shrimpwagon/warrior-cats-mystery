@@ -1175,9 +1175,9 @@ function renderCats() {
                 name: 'Mossheart',
                 x: 2940,
                 lines: [
-                    'Mossheart sleeps under this stone. A clan-elder once, now of Starclan.',
-                    'The moss grows thick here, as if Mossheart still tends it.',
-                    'You whisper a thank-you. Some warriors are remembered by every season.'
+                    'Mossheart sleeps under this stone. She died from a birthing infection a moon after kitting Pebblekit, Mosskit, and Tinykit — and you, the foundling she took in.',
+                    'The moss grows thick here, as if Mossheart still tends it. She was your nurse-mother, even though her own milk barely reached you.',
+                    'You whisper a thank-you. Without Mossheart, you would never have grown into a Moonclan apprentice at all.'
                 ]
             }
         ];
@@ -1576,10 +1576,11 @@ const starclanLines = {
         '"The fern path catches every misstep. Step lightly when you walk it."'
     ],
     Mossheart: [
-        '"This forest is greener up close, when you walk it as a star."',
-        '"I died chasing a fox away from the queens. I would do it again."',
-        '"Bring the apprentices a clean catch and the prey-pile will sing."',
-        '"Listen to the moss. It speaks softer than the wind, but truer."'
+        '"{WARRIOR}... my little foundling. I held you when your eyes were still closed."',
+        '"I am sorry I had to leave you so young. The birthing fever took me before any of my kits opened their eyes — yours included."',
+        '"Watch over Mosskit, Pebblekit, and Tinykit for me. Tell them their mother loved them, even from up here."',
+        '"Whiskerstar laid you in my nest the night the patrol found you on the Sunclan border. From the first heartbeat, I knew you were mine too."',
+        '"You are not a Sunclan castaway. You are mine. Never doubt it, kit."'
     ],
     Whiskerstar: [
         '"My old camp still feels close, {WARRIOR}. Thank you for naming the cat that took my life."',
