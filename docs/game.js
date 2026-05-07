@@ -654,6 +654,7 @@ function resetGame(showOverlay = true) {
         playerKits: [],
         ghostMode: false,
         ghostStartDay: null,
+        deathGatheringDone: false,
         mateKilled: false,
         oldAgePrompted: false,
         nurseryKitAges: [
@@ -1609,8 +1610,44 @@ function starclanLine(name) {
     ]);
 }
 
+function isPlayerKitName(name) {
+    return (game?.playerKits || []).some((kit) => {
+        const stage = growthStage(kit.bornDay);
+        return nameAtStage(kit, stage) === name;
+    });
+}
+
+function withinGriefWindow() {
+    return game?.ghostMode && game.ghostStartDay != null && (game.day - game.ghostStartDay) < 4;
+}
+
+function parentTerm() {
+    if (game?.gender === 'tom') return 'Father';
+    if (game?.gender === 'she-cat') return 'Mother';
+    return 'Parent';
+}
+
 function ghostFeelingLine(name) {
     const W = warriorName();
+    if (withinGriefWindow()) {
+        if (name === game.mate) {
+            return rotatingText(`grief-mate-${name}`, [
+                `${name} sits beside an empty nest, unmoving. "${W}... I keep waiting to hear your paws."`,
+                `${name}'s eyes shine wet. "How am I supposed to wake up without you?"`,
+                `${name} stares past you, into nothing. "The dawn feels wrong without you in it."`,
+                `${name} murmurs, "Starclan had no right to take you yet. Not yet."`
+            ]);
+        }
+        if (isPlayerKitName(name)) {
+            const term = parentTerm();
+            return rotatingText(`grief-kit-${name}`, [
+                `${name} curls small in the moss. "I keep forgetting you are gone, ${term}. Then I remember."`,
+                `${name} whispers, "I will be a warrior worth your name, ${term}. I promise."`,
+                `${name} looks at the den entrance. "I keep thinking you will walk back in."`,
+                `${name}'s voice cracks. "${term}... I miss you so much it hurts to breathe."`
+            ]);
+        }
+    }
     return rotatingText(`ghost-${name}`, [
         `${name} shivers. "Did you feel cold stars brush past?"`,
         `${name} looks through you. "Something unseen is standing here."`,
@@ -3578,6 +3615,9 @@ function startGathering() {
     document.getElementById('finishGatheringBtn').addEventListener('click', finishGathering);
     if (!game.firstGatheringDone) {
         setMessage('Ashstar', `Night falls beneath the great tree. Ashstar steps to the front of the branch and lifts her voice. "Cats of all clans, hear me. Whiskerstar walked into Starclan not long ago — killed by the same exiled rogue who took Willowfur from us. I lead Moonclan now, and I have received my nine lives at the Moonpool. Tonight I name our new deputy: ${warriorName()}, the warrior who hunted that murderer down when no other cat could. They will speak for Moonclan when I cannot. Honor them as you honor me."`);
+    } else if (game.ghostMode && !game.deathGatheringDone) {
+        game.deathGatheringDone = true;
+        setMessage('Ashstar', `Night falls beneath the great tree. Ashstar's voice is heavy. "Cats of all clans, I bring word that ${warriorName()} of Moonclan has joined Starclan. They served as deputy through the hardest moons this clan has known — they hunted down Willowfur's killer when no other cat could, and they raised a litter we will be proud of for generations. ${game.mate ? game.mate + ' grieves beside an empty nest tonight. ' : ''}Bow your heads with us. Moonclan honors them."`);
     } else {
         setMessage('Gathering', 'Night falls. Moonclan, Sunclan, and Dawnclan meet beneath the great tree.');
     }
