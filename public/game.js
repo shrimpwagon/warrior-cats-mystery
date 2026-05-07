@@ -2785,11 +2785,7 @@ function proposeMate(name) {
     if (!game.rose || !game.roseInMouth || trustFor(name) < 3 || game.mate || !cat || !canMateWith(cat)) {
         return;
     }
-    if (game.roseDeclined && game.roseDeclined.name === name && game.roseDeclined.day === game.day) {
-        return;
-    }
-    const previousPanel = accusePanel.innerHTML;
-    accusePanel.innerHTML = '<button id="roseYesBtn" type="button">Yes, give the rose</button><button id="roseNoBtn" type="button">No, keep talking</button>';
+    accusePanel.innerHTML = '<button id="roseYesBtn" type="button">Yes, give the rose</button><button id="roseNoBtn" type="button">No</button>';
     document.getElementById('roseYesBtn').addEventListener('click', () => {
         game.rose = false;
         game.roseInMouth = false;
@@ -2797,15 +2793,13 @@ function proposeMate(name) {
         updateRoseVisual();
         addNote(`${name} became your mate after you gave the special rose.`);
         setMessage(name, `${name} accepts the special rose. "Yes. I will be your mate."`);
-        accusePanel.innerHTML = previousPanel;
+        accusePanel.innerHTML = '';
         updateHud();
     });
     document.getElementById('roseNoBtn').addEventListener('click', () => {
-        game.roseDeclined = { name, day: game.day };
-        accusePanel.innerHTML = previousPanel;
-        speak(cat);
+        accusePanel.innerHTML = '';
     });
-    setMessage(`${name} (${cat.gender})`, `Do you want to give the special rose to ${name} and ask them to be your mate?`);
+    setMessage(`${name} (${cat.gender})`, `Give the rose to ${name} and ask them to be your mate?`);
 }
 
 function tellClanAboutPrincess() {
