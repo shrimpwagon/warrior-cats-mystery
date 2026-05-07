@@ -617,6 +617,7 @@ function resetGame(showOverlay = true) {
         trust: {},
         mate: null,
         rose: false,
+        roseInMouth: false,
         roseWon: false,
         ticTacToeDone: false,
         moonpoolClosed: false,
@@ -869,6 +870,7 @@ function renderCats() {
     npcLayer.innerHTML = '';
     player.innerHTML = catMarkup();
     player.classList.toggle('ghost-player', Boolean(game.ghostMode));
+    player.classList.toggle('holding-rose', !!game?.roseInMouth);
     if (!game.ghostMode) {
         player.style.setProperty('--fur', playerFur());
         player.style.setProperty('--mark', playerMark());
@@ -1585,7 +1587,7 @@ function speak(cat) {
             offerPreyToCat(cat);
             return;
         }
-        if (canMateWith(cat) && game.rose && trustFor(cat.name) >= 3 && !game.mate) {
+        if (canMateWith(cat) && game.rose && game.roseInMouth && trustFor(cat.name) >= 3 && !game.mate) {
             proposeMate(cat.name);
             return;
         }
@@ -2026,6 +2028,15 @@ function talkInsideDen(name) {
     }
     if (name === 'Oakwhisker') {
         showOakwhiskerStories();
+        return;
+    }
+    if (name === 'Mosspaw' && denTitle.textContent === 'Elder Den') {
+        const elderLines = [
+            'Mosspaw dabs marigold paste onto Oakwhisker\'s stiff shoulder. "Hold still, please. The cold mornings make this ache worse for him."',
+            'Mosspaw chews comfrey root into a poultice. "Oakwhisker\'s joints stiffen when the wind shifts. Rosesong taught me which leaves help most."',
+            'Mosspaw smiles up at you, a sprig of tansy between her teeth. "This one is for his cough. Elders deserve a steady paw, do they not?"'
+        ];
+        setMessage('Mosspaw (Medicine Cat Apprentice)', rotatingText('mosspaw-elderden', elderLines));
         return;
     }
     const denLines = {
@@ -2725,7 +2736,7 @@ function proposeMate(name) {
     const fromCast = cast.find((entry) => entry.name === name);
     const fromExtras = extraCats[name];
     const cat = fromCast || (fromExtras ? { name, ...fromExtras } : null);
-    if (!game.rose || trustFor(name) < 3 || game.mate || !cat || !canMateWith(cat)) {
+    if (!game.rose || !game.roseInMouth || trustFor(name) < 3 || game.mate || !cat || !canMateWith(cat)) {
         return;
     }
     if (game.roseDeclined && game.roseDeclined.name === name && game.roseDeclined.day === game.day) {
@@ -2735,7 +2746,9 @@ function proposeMate(name) {
     accusePanel.innerHTML = '<button id="roseYesBtn" type="button">Yes, give the rose</button><button id="roseNoBtn" type="button">No, keep talking</button>';
     document.getElementById('roseYesBtn').addEventListener('click', () => {
         game.rose = false;
+        game.roseInMouth = false;
         game.mate = name;
+        updateRoseVisual();
         addNote(`${name} became your mate after you gave the special rose.`);
         setMessage(name, `${name} accepts the special rose. "Yes. I will be your mate."`);
         accusePanel.innerHTML = previousPanel;
@@ -3650,7 +3663,12 @@ function openInventory() {
         setMessage('Inventory', 'Your inventory is empty.');
         return;
     }
-    accusePanel.innerHTML = items.map((it) => `<button class="invItemBtn" data-item="${it}" type="button">${it === 'rose' ? 'Special Rose' : 'Mouse (in mouth)'}</button>`).join('') + '<button id="invCloseBtn" type="button">Close</button>';
+    accusePanel.innerHTML = items.map((it) => {
+        const label = it === 'rose'
+            ? (game.roseInMouth ? 'Special Rose (in mouth)' : 'Special Rose')
+            : 'Mouse (in mouth)';
+        return `<button class="invItemBtn" data-item="${it}" type="button">${label}</button>`;
+    }).join('') + '<button id="invCloseBtn" type="button">Close</button>';
     accusePanel.querySelectorAll('.invItemBtn').forEach((btn) => {
         btn.addEventListener('click', () => offerItemAction(btn.dataset.item));
     });
@@ -3658,7 +3676,7 @@ function openInventory() {
         accusePanel.innerHTML = '';
         setMessage('Inventory', 'You close your inventory.');
     });
-    setMessage('Inventory', 'Click an item to drop or keep it.');
+    setMessage('Inventory', 'Click an item to use it.');
 }
 
 function offerItemAction(item) {
@@ -3666,20 +3684,35 @@ function offerItemAction(item) {
         setMessage('Inventory', 'You keep the mouse for now.');
         return;
     }
-    const previous = accusePanel.innerHTML;
-    accusePanel.innerHTML = '<button id="dropRoseBtn" type="button">Drop the rose</button><button id="keepRoseBtn" type="button">Keep it</button>';
-    document.getElementById('dropRoseBtn').addEventListener('click', () => {
-        game.rose = false;
-        addNote('You dropped the special rose. It will not come back.');
-        setMessage('Inventory', 'You let the rose fall to the moss. It is gone for good.');
+    if (game.roseInMouth) {
+        accusePanel.innerHTML = '<button id="stopHoldRoseBtn" type="button">Stop holding the rose</button>';
+        document.getElementById('stopHoldRoseBtn').addEventListener('click', () => {
+            game.roseInMouth = false;
+            updateRoseVisual();
+            updateHud();
+            accusePanel.innerHTML = '';
+            setMessage('Inventory', 'You set the rose back in your inventory. It is safe.');
+        });
+        setMessage('Special Rose', 'You are carrying the rose in your mouth. Stop holding it?');
+        return;
+    }
+    accusePanel.innerHTML = '<button id="holdRoseYes" type="button">Yes, hold the rose</button><button id="holdRoseNo" type="button">No</button>';
+    document.getElementById('holdRoseYes').addEventListener('click', () => {
+        game.roseInMouth = true;
+        updateRoseVisual();
         updateHud();
-        visitArea(game.currentArea);
+        accusePanel.innerHTML = '';
+        setMessage('Special Rose', 'You take the rose gently in your mouth, stem between your teeth. Click a cat at 3/3 trust to ask them to be your mate.');
     });
-    document.getElementById('keepRoseBtn').addEventListener('click', () => {
-        accusePanel.innerHTML = previous;
-        setMessage('Inventory', 'You tuck the rose closer and keep it.');
+    document.getElementById('holdRoseNo').addEventListener('click', () => {
+        accusePanel.innerHTML = '';
     });
-    setMessage('Special Rose', 'Drop or keep the rose? Once dropped, you cannot give it to a cat to be your mate.');
+    setMessage('Special Rose', 'Hold the rose?');
+}
+
+function updateRoseVisual() {
+    if (!player) return;
+    player.classList.toggle('holding-rose', !!game?.roseInMouth);
 }
 
 player.addEventListener('click', () => {
