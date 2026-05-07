@@ -128,7 +128,7 @@
                 </header>
                 <div class="instructions-body">
                     <h3>What you are doing</h3>
-                    <p>You are Bramblepaw, a Moonclan apprentice. A warrior named Willowfur has been murdered. Find the killer before Day 3 ends. Solve the mystery and you become a warrior, then live the rest of your life in the clan.</p>
+                    <p>You play as a Moonclan apprentice. A warrior named Willowfur has been murdered. Find the killer before Day 3 ends. Solve the mystery and you become a warrior, then live the rest of your life in the clan.</p>
 
                     <h3>How to play</h3>
                     <ul>
@@ -147,11 +147,56 @@
 
                     <h3>How to find clues</h3>
                     <ul>
-                        <li>Click Moonclan cats in camp to question them. Only the <strong>first 2 cats</strong> you talk to will give you a clue, so choose carefully.</li>
-                        <li>Open your <strong>Notebook</strong> to mark cats with <strong>Cross</strong> or <strong>Check</strong>, and use the one-time <strong>Alibi</strong> button on a single cat to learn what they say they were doing the night of the murder.</li>
+                        <li>Each new game, only <strong>2 random cats</strong> will give you a real clue. Pinefoot and Mistclaw are too scared to talk. The murderer just gives an alibi. Other cats speak normally but won't add anything.</li>
+                        <li>Clues describe the killer by <strong>eye color</strong> (gold, sky blue, amber, leaf green, icy blue, copper, emerald). Match the eye color to a warrior in camp.</li>
+                        <li>Open your <strong>Notebook</strong> to mark cats with <strong>Cross</strong> or <strong>Check</strong>, and use the one-time <strong>Alibi</strong> button on a single cat to hear what they say they were doing.</li>
                         <li>The only physical evidence is a tuft of <strong>torn fur</strong>, hidden in a bush on the far right of camp. Click the bush to start a search minigame and pick the clump that hides the fur.</li>
-                        <li>Collect <strong>3 clues</strong> in total (2 from cats + the fur). Once you have them all, the <strong>Solve</strong> buttons appear so you can accuse the murderer.</li>
-                        <li>Choose carefully: a wrong accusation, or running out of days, ends the game.</li>
+                        <li>You only accuse when you press <strong>Solve</strong>. Choose carefully — a wrong accusation, or running out of days, ends the game.</li>
+                    </ul>
+
+                    <h3>Building trust with a cat</h3>
+                    <ul>
+                        <li>Catch prey at the hunting grounds (<code>↓</code> / <code>S</code> when a mouse appears) and walk it back to a cat. Click them with prey in your mouth and choose <strong>Yes, give prey</strong>. Trust goes up by 1.</li>
+                        <li>Talking to a cat repeatedly also slowly raises trust (every 6 chats).</li>
+                        <li>Most cats cap at <strong>3/3</strong>. Whiskerstar caps at <strong>5/5</strong>; he also gains trust sometimes when you drop prey on the prey pile (chance gets smaller as his trust climbs).</li>
+                        <li>The HUD shows <strong>Trust X/Y (in all)</strong> — how many Moonclan cats fully trust you out of the whole clan. The number drops if cats die or get exiled.</li>
+                    </ul>
+
+                    <h3>Getting a mate</h3>
+                    <ul>
+                        <li>Win the <strong>tic-tac-toe</strong> game at the borders one time to earn a <strong>Special Rose</strong>.</li>
+                        <li>Open your <strong>Inventory</strong>, click the rose, and choose <strong>Yes, hold the rose</strong> to carry it in your mouth (you'll see a small pink bloom by your muzzle).</li>
+                        <li>Build a cat to <strong>3/3 trust</strong>, then click them while holding the rose. A prompt asks if you want to give them the rose. Yes makes them your mate; No keeps the rose for someone else.</li>
+                        <li>To stop holding the rose without giving it, open the inventory again and pick <strong>Stop holding the rose</strong>. It returns to your inventory.</li>
+                        <li>Eligible mates: Mistclaw, Ravenstripe, Brindleleaf, Cloudspark, Sorreltail, Birchstep, Hollyfoot, and Princess (the kittypet at the borders). Ashfall, Whiskerstar, Pinefoot, and your own kits are off-limits.</li>
+                        <li>Mates show <strong>(Mates)</strong> instead of trust on click. After you mate, dialogue with that cat changes.</li>
+                    </ul>
+
+                    <h3>Having kits</h3>
+                    <ul>
+                        <li>Five days after you become mates, the next time you sleep, the game asks if you want to have kits. Pick <strong>Have Kits</strong> to start a 3-day pregnancy. Pick <strong>Not Yet</strong> to keep the offer open.</li>
+                        <li>After 3 more sleeps, your kits are born. They sleep in the nursery their first day, then spread across camp.</li>
+                        <li>You can name each kit yourself (type a prefix, press Enter), end naming early, or skip and let the game pick.</li>
+                        <li>Kits become apprentices after 6 days, warriors after 12. Ashstar randomly picks the warrior suffix at promotion.</li>
+                    </ul>
+
+                    <h3>Clan relationships (Sunclan, Dawnclan)</h3>
+                    <ul>
+                        <li>The relationship ladder runs: <strong>extremely angry → aggressive → neutral → peaceful → good friends</strong>. Sunclan starts <em>aggressive</em>; Dawnclan starts <em>neutral</em>.</li>
+                        <li>To make a clan more peaceful: catch prey, walk it to one of their warriors at the border (Sunclan) or at a Gathering (Dawnclan), and choose <strong>Yes, give prey</strong>. Every <strong>3 prey gifts</strong> bumps the relationship up one rung.</li>
+                        <li>To worsen relations: click <strong>Fight</strong> on one of their warriors. Each fight drops the relationship one rung.</li>
+                        <li>Once Sunclan reaches <em>peaceful</em> or <em>good friends</em>, one of their warriors will carry a mouse for you each day. Click that cat to take the prey home.</li>
+                        <li>Open the <strong>Leader Den</strong> and pick <strong>Clan relationships</strong> to check current status any time.</li>
+                    </ul>
+
+                    <h3>Living in the clan</h3>
+                    <ul>
+                        <li>The <strong>prey pile</strong> in the middle of camp holds shared prey. Drop prey on it (and feed the clan) or take from it when hungry. It decays a little each day.</li>
+                        <li><strong>Patrols</strong> after you become deputy — pick 3 cats and they bring back prey, scares, or scratches.</li>
+                        <li><strong>Battle</strong> warriors at the fighting grounds to raise your max health. Eat a mouse (<code>↓</code> / <code>S</code> while holding it) for +1 max health.</li>
+                        <li><strong>Gatherings</strong> happen every 7 days after you become deputy. Walk over to the gathering scene to attend.</li>
+                        <li><strong>Oakwhisker</strong> in the elder den has four stories: the other clans, the murder, your origin, and the empty nest beside him. Mosspaw sometimes visits the elder den to treat him.</li>
+                        <li>At <strong>40 moons</strong> you die of old age. Pick <strong>continue as a ghost</strong> to keep playing in Starclan. Your mate and kits grieve for 4 days; the next Gathering has a eulogy from Ashstar.</li>
                     </ul>
                 </div>
             </form>
