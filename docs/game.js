@@ -155,7 +155,7 @@ const extraCats = {
     Ashberry: { rank: 'Dawnclan Warrior', gender: 'She-cat', fur: '#65574b', mark: '#f0d28b' }
 };
 
-const mateCandidates = new Set(['Mistclaw', 'Brindleleaf', 'Cloudspark', 'Sorreltail', 'Princess', 'Birchstep', 'Hollyfoot']);
+const mateCandidates = new Set(['Mistclaw', 'Ravenstripe', 'Brindleleaf', 'Cloudspark', 'Sorreltail', 'Princess', 'Birchstep', 'Hollyfoot']);
 const SMUDGE_CAT = { name: 'Princess', rank: 'Kittypet', gender: 'She-cat', fur: '#e8c895', mark: '#a86b3c' };
 
 const firstLines = {
