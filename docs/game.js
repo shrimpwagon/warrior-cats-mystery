@@ -2037,16 +2037,16 @@ function oakwhiskerStoryMurder() {
     return `Oakwhisker lowers his voice. "Listen close. ${culprit} did not kill Willowfur over a piece of prey. Many moons ago, ${culprit}'s own sister was named deputy of Moonclan. She was sharp-eyed and fair — the clan loved her. ${culprit} did not. One dusk, ${culprit} caught her alone in the brambles and tore her throat out, so the deputy spot would fall to a weaker cat. The clan never knew who had done it. But Willowfur did. She had been gathering moss in those same brambles, and she saw it all. She kept silent — fear, pity, hope ${culprit} would change. They never did. When Willowfur finally hinted she was going to speak, ${culprit} silenced her too. I know because I was in those brambles with Willowfur the night the deputy died. I was younger then, faster. I slipped away before they saw me. I have carried it in my old bones all these moons, waiting for the right ear. Yours, apparently."`;
 }
 
-function oakwhiskerStoryStorm() {
-    return 'Oakwhisker grunts a soft laugh. "The great storm hit this forest before your dam was even kitted. The river broke its banks and swallowed half our camp. We lost three warriors in one night to the rising water. Thunder cracked so loud the kits thought Starclan had finally turned its back on us. We rebuilt from nothing — every den you sleep in now was raised after that storm. Tell Snowkit when she is old enough. She should know what these walls cost."';
+function oakwhiskerStoryOrigin() {
+    return 'Oakwhisker\'s voice softens. "You do not remember it, but I do. You were a tiny scrap of fur when one of our patrols found you mewling on the Sunclan border, alone in the brambles. No mother in sight. No scent we could follow. Whiskerstar carried you back to camp himself. You have known no home but Moonclan. Mossheart took you to her belly without a second thought — she was already heavy with kits of her own, but she had milk enough for one more, and a heart wider than the sky. A moon after she kitted Pebblekit, Mosskit, and Tinykit, an infection from the birthing took her in the night. Rosesong did all she could. It was not enough. Mossheart joined Starclan before her own litter ever opened their eyes. As for the murder, kit — Whiskerstar set that hunt on your shoulders because you were the only apprentice in the clan at the time, older than Mossheart\'s kits and old enough to think for yourself. He believed it would prove what kind of warrior you would become. I believe he was right."';
 }
 
 function showOakwhiskerStories() {
     setMessage('Oakwhisker (Elder)', 'Oakwhisker tucks his tail close. "Sit, kit. I have stories. Pick one."');
-    accusePanel.innerHTML = '<button id="oakStoryClans" type="button">Tell me about the other clans</button><button id="oakStoryMurder" type="button">Tell me about the murder</button><button id="oakStoryStorm" type="button">Tell me about the great storm</button><button id="oakStoryDone" type="button">That\'s enough for now</button>';
+    accusePanel.innerHTML = '<button id="oakStoryClans" type="button">Tell me about the other clans</button><button id="oakStoryMurder" type="button">Tell me about the murder</button><button id="oakStoryOrigin" type="button">Tell me about my parents</button><button id="oakStoryDone" type="button">That\'s enough for now</button>';
     document.getElementById('oakStoryClans').addEventListener('click', () => setMessage('Oakwhisker (Elder)', oakwhiskerStoryClans()));
     document.getElementById('oakStoryMurder').addEventListener('click', () => setMessage('Oakwhisker (Elder)', oakwhiskerStoryMurder()));
-    document.getElementById('oakStoryStorm').addEventListener('click', () => setMessage('Oakwhisker (Elder)', oakwhiskerStoryStorm()));
+    document.getElementById('oakStoryOrigin').addEventListener('click', () => setMessage('Oakwhisker (Elder)', oakwhiskerStoryOrigin()));
     document.getElementById('oakStoryDone').addEventListener('click', () => {
         accusePanel.innerHTML = '';
         setMessage('Oakwhisker (Elder)', 'Oakwhisker dips his head and closes his eyes. "Come back when you want another, young one."');
@@ -2104,7 +2104,7 @@ function talkInsideDen(name) {
             'Oakwhisker scratches behind his ear. "I outlived three deputies. Almost a fourth."',
             'Oakwhisker says, "When I was your age, I caught a fox on the river path. Almost. Mostly."',
             'Oakwhisker yawns. "Wake me when the prey runs at dawn. Or do not. I will sleep through it."',
-            'Oakwhisker murmurs, "Tell Snowkit the story of the great storm when she is older."',
+            'Oakwhisker murmurs, "Mossheart would have loved seeing you grow. Hold onto that, young one."',
             'Oakwhisker says, "Time slows in the elder den. Visit more, warrior."'
         ],
         Rosesong: [
