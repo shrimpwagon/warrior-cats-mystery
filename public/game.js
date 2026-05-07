@@ -93,7 +93,8 @@ function preyPileClick() {
         game.preyPile = Math.min(PREY_PILE_MAX, game.preyPile + 1);
         addNote(`You added a piece of prey to the pile. Now ${game.preyPile}/${PREY_PILE_MAX} fresh-kill.`);
         let extra = '';
-        if (Math.random() < 0.4 && trustFor('Whiskerstar') < trustMax('Whiskerstar')) {
+        const trustChance = Math.max(0.05, 0.4 - trustFor('Whiskerstar') * 0.02);
+        if (Math.random() < trustChance && trustFor('Whiskerstar') < trustMax('Whiskerstar')) {
             game.trust.Whiskerstar = trustFor('Whiskerstar') + 1;
             addNote(`Whiskerstar noticed your contribution. Trust ${trustFor('Whiskerstar')}/${trustMax('Whiskerstar')}.`);
             extra = ` Whiskerstar dips her head from across camp — trust ${trustFor('Whiskerstar')}/${trustMax('Whiskerstar')}.`;
@@ -171,7 +172,7 @@ const firstLines = {
 const denDetails = {
     'Leader Den': ['A quiet stone-scented den tucked behind Highrock. Empty for now.', '<div class="nest"></div><div class="nest"></div>', []],
     Nursery: ['Warm moss and soft bracken. A small kit is curled tight, fast asleep.', '<div class="nest"></div>', ['Snowkit']],
-    'Warrior Den': ['Crowded nests ring the walls. Once you are a warrior, you can sleep here to advance time.', '<div class="nest"></div><div class="nest"></div><div class="nest"></div>', ['Birchstep', 'Hollyfoot', 'Brindleleaf', 'Cloudspark', 'Sorreltail']],
+    'Warrior Den': ['Crowded nests ring the walls. Once you are a warrior, you can sleep here to advance time.', '<div class="nest"></div><div class="nest"></div><div class="nest"></div>', ['Hollyfoot', 'Birchstep']],
     'Elder Den': ['Dry leaves and old stories fill the air.', '<div class="nest"></div><div class="nest"></div>', ['Oakwhisker']],
     'Medicine Den': ['A leafy den woven from ferns, ivy, and sweet-smelling herbs.', '<div class="leaf-pile"></div><div class="herb-bundle"></div>', ['Rosesong']]
 };
@@ -1901,6 +1902,10 @@ function enterDen(name) {
     if (name === 'Medicine Den' && mosskitMedicineCat()) {
         denCats = [...denCats, mosskitName()];
     }
+    if (name === 'Elder Den' && mosskitName() === 'Mosspaw' && Math.random() < 0.5) {
+        denCats = [...denCats, 'Mosspaw'];
+        denText.textContent = `${detail[0]} Mosspaw is here, dabbing marigold paste onto Oakwhisker's stiff shoulder.`;
+    }
     denCats.filter((catName) => !(game.ashstarLeader && catName === 'Whiskerstar'))
         .filter((catName) => shouldShowLivingCat(catName))
         .forEach((catName, index) => {
@@ -2325,15 +2330,41 @@ function worsenClan(clan) {
     }
 }
 
+const CLAN_CAT_LINES = {
+    Nettleclaw: {
+        'extremely-angry': `Nettleclaw lunges a step forward, fangs bared. "One more pawstep and I gut you, Moonclan filth."`,
+        'aggressive': `Nettleclaw flattens his ears, growling deep. "You stink of Moonclan. Turn around before I shred that pelt."`,
+        'neutral': `Nettleclaw studies you, tail twitching. "Speak quickly. Sunclan does not have time for strays."`,
+        'peaceful': `Nettleclaw nods curtly. "Moonclan walks lighter than I remember. Good."`,
+        'good-friends': `Nettleclaw bumps his shoulder against yours. "If trouble ever finds you, send word. I owe Moonclan a debt now."`
+    },
+    Dawnpelt: {
+        'extremely-angry': `Dawnpelt spits, fur spiked along her spine. "I will scar your face if you breathe near me again."`,
+        'aggressive': `Dawnpelt curls her lip. "Crawl back to your camp before I rip a notch in your ear."`,
+        'neutral': `Dawnpelt watches you over her shoulder. "Say what you came to say. Then go."`,
+        'peaceful': `Dawnpelt's whiskers soften. "It is good when borders mean lines, not blood."`,
+        'good-friends': `Dawnpelt purrs softly. "Come share tongues. Sunclan and Moonclan need not always squabble."`
+    },
+    Russetfang: {
+        'extremely-angry': `Russetfang's claws scrape the stone. "Sunstar will hear of this trespass. Pray it is me you face and not him."`,
+        'aggressive': `Russetfang growls, voice cold. "You are not welcome here, apprentice. Leave on your own paws or be carried."`,
+        'neutral': `Russetfang straightens, deputy poise sharp. "State your purpose. I have a patrol to run."`,
+        'peaceful': `Russetfang inclines his head. "Tell your leader Russetfang sends respect."`,
+        'good-friends': `Russetfang's eyes warm. "If Sunclan ever needs Moonclan paws, I trust we can ask. The same is true the other way."`
+    }
+};
+
 function clanSayLine(name, state) {
-    const lines = {
+    const perCat = CLAN_CAT_LINES[name];
+    if (perCat && perCat[state]) return perCat[state];
+    const fallback = {
         'extremely-angry': `${name} bristles, claws unsheathed. "Get away from us. NOW."`,
-        'aggressive': `${name} hisses. "L-l-leave Sunclan land. Y-you should not be here."`,
+        'aggressive': `${name} snarls. "Leave our land before I make you bleed for it."`,
         'neutral': `${name} eyes you carefully. "We are not enemies today. Speak."`,
         'peaceful': `${name} dips their head. "Always good to see a Moonclan paw at our border."`,
         'good-friends': `${name} purrs. "Friend! Sit a moment, share words."`
     };
-    return lines[state] || `${name} watches you silently.`;
+    return fallback[state] || `${name} watches you silently.`;
 }
 
 function offerPreyToOtherClan(name, clan) {
@@ -2531,7 +2562,10 @@ function spawnMouse() {
     game.mouseVisible = true;
     huntScene.hidden = false;
     huntScene.classList.add('mouse-ready');
-    huntScene.querySelector('.hunt-cat').innerHTML = catMarkup();
+    const huntCat = huntScene.querySelector('.hunt-cat');
+    huntCat.innerHTML = catMarkup();
+    huntCat.style.setProperty('--fur', playerFur());
+    huntCat.style.setProperty('--mark', playerMark());
     setMessage('Hunting Grounds', 'A mouse darts out. Press Down or S now!');
     setTimeout(() => {
         if (game.mouseVisible) {
