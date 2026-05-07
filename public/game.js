@@ -158,6 +158,17 @@ const extraCats = {
 const mateCandidates = new Set(['Mistclaw', 'Ravenstripe', 'Brindleleaf', 'Cloudspark', 'Sorreltail', 'Princess', 'Birchstep', 'Hollyfoot']);
 const SMUDGE_CAT = { name: 'Princess', rank: 'Kittypet', gender: 'She-cat', fur: '#e8c895', mark: '#a86b3c' };
 
+const genericLines = {
+    Whiskerstar: ['I am keeping my own counsel for now. Speak with the warriors.', 'Lead with patience, kit. Not every cat is ready to share what they know.'],
+    Ashfall: ['I have my hunches, but rumor is poison. I will keep mine to myself.', 'Trust the cats who choose to speak. Press the rest later.'],
+    Mistclaw: ['The borders need watching, even now. I keep to my patrols.', 'Ask a cat who was actually awake that night.'],
+    Ravenstripe: ['Such terrible news. The clan is shaken.', 'I hope they find whoever did this. The clan needs peace.'],
+    Brindleleaf: ['I have nothing useful to add. Sorry.', 'Some things a warrior keeps to themselves.'],
+    Cloudspark: ['The forest feels colder lately. I do not like it.', 'I am sticking close to camp until this passes.'],
+    Pinefoot: ['The fighting grounds keep me busy. I was not near the elder den.', 'Reedpaw and Fernpaw need their training. That is my focus.'],
+    Sorreltail: ['A fresh mouse can say more than a moon of boasting.', 'I am keeping my whiskers down. Sorry, kit.']
+};
+
 const firstLines = {
     Whiskerstar: ['My ears heard anger by the medicine den. Willowfur hissed at someone with {EYES} eyes — they had stolen prey.', 'A leader must see truth through fog. Look for the one whose eyes will not meet yours.'],
     Ashfall: ['I counted the nests. A warrior with {EYES} eyes slipped out after the camp went quiet. My mate Pinefoot was beside me asleep the whole night.', 'Find what clung to their pelt. The forest keeps receipts. Pinefoot would have noticed too if she had not been so tired.'],
@@ -1708,11 +1719,16 @@ function speak(cat) {
         return;
     }
 
-    const culpritEyes = cast.find((c) => c.name === firstMurderer)?.eyes || 'pale';
-    const line = (firstLines[cat.name]?.[questioned.has(cat.name) ? 1 : 0] || 'They twitch their whiskers.').replaceAll('{EYES}', culpritEyes);
     const isClueGiver = !game.firstSolved && (game.clueGivers || []).includes(cat.name);
-    if (isClueGiver && !questioned.has(cat.name)) {
-        addNote(`${cat.rank} ${cat.name}: ${cat.clue}`);
+    let line;
+    if (isClueGiver) {
+        const culpritEyes = cast.find((c) => c.name === firstMurderer)?.eyes || 'pale';
+        line = (firstLines[cat.name]?.[questioned.has(cat.name) ? 1 : 0] || 'They twitch their whiskers.').replaceAll('{EYES}', culpritEyes);
+        if (!questioned.has(cat.name)) {
+            addNote(`${cat.rank} ${cat.name}: ${cat.clue}`);
+        }
+    } else {
+        line = genericLines[cat.name]?.[questioned.has(cat.name) ? 1 : 0] || 'They twitch their whiskers.';
     }
     questioned.add(cat.name);
     setMessage(`${cat.name}, ${cat.rank} (${cat.gender})`, line);
