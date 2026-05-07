@@ -3466,18 +3466,14 @@ function askForKits() {
     accusePanel.innerHTML = '<button id="kitsYesBtn" type="button">Have Kits</button><button id="kitsNoBtn" type="button">Not Yet</button>';
     document.getElementById('kitsYesBtn').addEventListener('click', () => {
         game.expectingKits = true;
-        game.day += 3;
-        game.kitsDueDay = game.day;
-        decayPreyPile();
-        decayPreyPile();
-        decayPreyPile();
-        updatePreyPileLabel();
-        updateKitsTimeline();
+        game.kitsDueDay = game.day + 3;
+        addNote(`You and ${game.mate} are expecting kits in three days.`);
         accusePanel.innerHTML = '<button id="sleepBtn" type="button">Sleep in Warrior Den</button>';
         document.getElementById('sleepBtn').addEventListener('click', sleepInWarriorDen);
-        updateHud();
-        updateChapter();
-        renderAll();
+        const birthText = playerCarriesKits()
+            ? `You will have kits with ${game.mate}. They should arrive in three days.`
+            : `${game.mate} will have kits. They should arrive in three days.`;
+        setMessage('Nursery', birthText);
     });
     document.getElementById('kitsNoBtn').addEventListener('click', () => {
         accusePanel.innerHTML = '<button id="sleepBtn" type="button">Sleep in Warrior Den</button>';
