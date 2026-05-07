@@ -2028,11 +2028,3 @@ dialog header {
     z-index: 5;
 }
 
-.cat.player-cat.facing-left.holding-rose::before {
-    left: -10px;
-    transform: rotate(-8deg) scaleX(-1);
-}
-
-.cat.player-cat.facing-left.holding-rose::after {
-    left: -16px;
-}
