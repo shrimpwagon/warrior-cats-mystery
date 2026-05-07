@@ -2408,7 +2408,7 @@ function markSunclanPreyHolder() {
     if (!node || node.querySelector('.mouth-prey')) return;
     const mouse = document.createElement('span');
     mouse.className = 'mouth-prey';
-    mouse.style.cssText = 'position:absolute;width:14px;height:9px;background:#6b4326;border:1px solid #2c1a0e;border-radius:50%;top:14px;right:-6px;z-index:5;box-shadow:-3px 1px 0 #2c1a0e inset;';
+    mouse.style.cssText = 'position:absolute;width:14px;height:9px;background:#6b4326;border:1px solid #2c1a0e;border-radius:50%;top:32px;right:-4px;z-index:5;box-shadow:-3px 1px 0 #2c1a0e inset;';
     node.appendChild(mouse);
 }
 
