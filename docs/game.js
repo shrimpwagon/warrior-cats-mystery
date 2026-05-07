@@ -3543,6 +3543,64 @@ function finishGathering() {
     }
 }
 
+function beginKitNaming() {
+    game.namingKitIndex = 0;
+    showKitNamingPrompt();
+}
+
+function showKitNamingPrompt() {
+    const i = game.namingKitIndex;
+    if (i == null || i >= game.playerKits.length) {
+        finishKitNaming();
+        return;
+    }
+    const kit = game.playerKits[i];
+    const placeholder = `${kit.base} (current)`;
+    accusePanel.innerHTML = `<input type="text" id="kitNameInput" placeholder="${placeholder}" autocomplete="off" maxlength="12" style="font:inherit;padding:6px 8px;border-radius:6px;border:1px solid #6b5138;background:#fff5e0;color:#1a1a1a;width:11em;" />`
+        + '<button id="kitNextBtn" type="button">Enter</button>'
+        + '<button id="kitEndBtn" type="button">End</button>'
+        + '<button id="kitSkipBtn" type="button">Skip naming kits</button>';
+    const input = document.getElementById('kitNameInput');
+    input.value = '';
+    setTimeout(() => input.focus(), 30);
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            applyKitName(input.value);
+        }
+    });
+    document.getElementById('kitNextBtn').addEventListener('click', () => applyKitName(input.value));
+    document.getElementById('kitEndBtn').addEventListener('click', () => {
+        if (input.value.trim()) {
+            applyKitName(input.value);
+        }
+        finishKitNaming();
+    });
+    document.getElementById('kitSkipBtn').addEventListener('click', finishKitNaming);
+    setMessage(game.mate, `Name kit ${i + 1} of ${game.playerKits.length}. Type a prefix and press Enter, hit End to finish, or Skip to keep random names.`);
+}
+
+function applyKitName(raw) {
+    const cleaned = (raw || '').trim().replace(/[^a-zA-Z]/g, '').slice(0, 12);
+    if (cleaned) {
+        const formatted = cleaned.charAt(0).toUpperCase() + cleaned.slice(1).toLowerCase();
+        game.playerKits[game.namingKitIndex].base = formatted;
+    }
+    game.namingKitIndex += 1;
+    renderAll();
+    showKitNamingPrompt();
+}
+
+function finishKitNaming() {
+    game.namingKitIndex = null;
+    accusePanel.innerHTML = '<button id="sleepBtn" type="button">Sleep in Warrior Den</button>';
+    document.getElementById('sleepBtn').addEventListener('click', sleepInWarriorDen);
+    renderAll();
+    const names = game.playerKits.map((k) => `${k.base}kit`).join(', ');
+    setMessage('Nursery', `Your kits — ${names} — are curled up asleep beside ${game.mate}.`);
+    addNote(`Your kits are named: ${names}.`);
+}
+
 function askForKits() {
     game.kitsAsked = true;
     accusePanel.innerHTML = '<button id="kitsYesBtn" type="button">Have Kits</button><button id="kitsNoBtn" type="button">Not Yet</button>';
@@ -3597,6 +3655,7 @@ function updateKitsTimeline() {
         game.kitsHad = true;
         game.expectingKits = false;
         game.kitsDueDay = null;
+        beginKitNaming();
     }
     const apprenticeNames = [];
     const warriorNames = [];
