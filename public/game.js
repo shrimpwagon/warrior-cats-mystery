@@ -3439,7 +3439,11 @@ function startGathering() {
     setScene('gathering');
     accusePanel.innerHTML = '<button id="finishGatheringBtn" type="button">Finish Gathering</button>';
     document.getElementById('finishGatheringBtn').addEventListener('click', finishGathering);
-    setMessage('Gathering', 'Night falls. Moonclan, Sunclan, and Dawnclan meet beneath the great tree.');
+    if (!game.firstGatheringDone) {
+        setMessage('Ashstar', `Night falls beneath the great tree. Ashstar steps to the front of the branch and lifts her voice. "Cats of all clans, hear me. Whiskerstar walked into Starclan not long ago — killed by the same exiled rogue who took Willowfur from us. I lead Moonclan now, and I have received my nine lives at the Moonpool. Tonight I name our new deputy: ${warriorName()}, the warrior who hunted that murderer down when no other cat could. They will speak for Moonclan when I cannot. Honor them as you honor me."`);
+    } else {
+        setMessage('Gathering', 'Night falls. Moonclan, Sunclan, and Dawnclan meet beneath the great tree.');
+    }
 }
 
 function finishGathering() {
