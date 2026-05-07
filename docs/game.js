@@ -802,10 +802,47 @@ function murdererCat() {
     return cast.find((cat) => cat.name === firstMurderer) || { name: firstMurderer, fur: '#171717', mark: '#4b4b4b' };
 }
 
+function moonclanRoster() {
+    const names = new Set();
+    if (!game.ashstarLeader) names.add('Whiskerstar');
+    names.add(game.ashstarLeader ? 'Ashstar' : 'Ashfall');
+    ['Mistclaw', 'Ravenstripe', 'Brindleleaf', 'Cloudspark', 'Pinefoot', 'Sorreltail',
+     'Rosesong', 'Oakwhisker', 'Birchstep', 'Hollyfoot', 'Reedpaw', 'Fernpaw', 'Snowkit']
+        .forEach((n) => names.add(n));
+    (game.nurseryKitAges || []).forEach((kit) => {
+        const stage = growthStage(kit.bornDay);
+        let name;
+        if (kit.base === 'Moss') {
+            name = stage === 'warrior' ? 'Mossleaf' : stage === 'apprentice' ? 'Mosspaw' : 'Mosskit';
+        } else {
+            const suffix = stage === 'warrior' ? 'heart' : stage === 'apprentice' ? 'paw' : 'kit';
+            name = `${kit.base}${suffix}`;
+        }
+        names.add(name);
+    });
+    const filtered = new Set();
+    names.forEach((n) => { if (shouldShowLivingCat(n)) filtered.add(n); });
+    return filtered;
+}
+
+function moonclanFullTrustStats() {
+    const roster = moonclanRoster();
+    let trusted = 0;
+    roster.forEach((name) => {
+        const max = trustMax(name);
+        if (max > 0 && trustFor(name) >= max) trusted += 1;
+    });
+    return { trusted, total: roster.size };
+}
+
 function updateHud() {
     const clueTotal = Math.min(2, foundClues.size);
-    const mateTrust = game.mate ? trustFor(game.mate) : Math.max(0, ...Object.values(game.trust));
-    clueCount.textContent = game.firstSolved ? `Trust ${mateTrust}/3${game.rose ? ' Rose' : ''}` : `Clues ${clueTotal}/2`;
+    if (game.firstSolved) {
+        const stats = moonclanFullTrustStats();
+        clueCount.textContent = `Trust ${stats.trusted}/${stats.total}${game.rose ? ' Rose' : ''}`;
+    } else {
+        clueCount.textContent = `Clues ${clueTotal}/2`;
+    }
     dayCount.textContent = game.firstSolved ? `Day ${game.day}` : `Day ${game.day}/${game.firstLimit}`;
     rankBadge.textContent = game.rank;
     preyCount.textContent = `Prey ${game.prey}${game.preyInMouth ? ' (in mouth)' : ''}`;
