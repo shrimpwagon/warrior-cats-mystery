@@ -688,6 +688,11 @@ function resetGame(showOverlay = true) {
         rogueDefeated: false,
         patrolDeaths: [],
         preyPile: 10,
+        kitsAllWarriorsDay: null,
+        tinyheartMateKit: null,
+        tinyheartMateDay: null,
+        tinyheartKitBornDay: null,
+        grandKits: [],
         sunclanState: 'aggressive',
         sunclanProgress: 0,
         sunclanGiftDay: -1,
@@ -1239,17 +1244,16 @@ function renderCats() {
 }
 
 function renderCampKits() {
-    [...game.nurseryKitAges, ...game.playerKits].forEach((kit, index) => {
+    [...game.nurseryKitAges, ...game.playerKits, ...(game.grandKits || [])].forEach((kit, index) => {
         const stage = growthStage(kit.bornDay);
-        const suffix = stage === 'warrior' ? 'heart' : stage === 'apprentice' ? 'paw' : 'kit';
-        const name = `${kit.base}${suffix}`;
+        const name = nameAtStage(kit, stage);
         if (!shouldShowLivingCat(name)) {
             return;
         }
         if (kit.base === 'Moss' && stage !== 'kit') {
             return;
         }
-        if (game.playerKits.includes(kit) && kit.bornDay === game.day) {
+        if ((game.playerKits.includes(kit) || (game.grandKits || []).includes(kit)) && kit.bornDay === game.day) {
             return;
         }
         const kitSpots = [620, 1240, 1900, 2440, 760, 1520, 2240];
@@ -1286,16 +1290,36 @@ function renderCampKits() {
                 `${name} murmurs, "I want to earn my warrior name before greenleaf ends."`
             ];
         } else {
-            lines = isPlayerKit ? [
-                `${name} purrs. "I am ready for any patrol you put me on. You taught me well."`,
-                `${name} dips their head. "Whatever Moonclan needs. You and ${game.mate} raised me for this."`,
-                `${name} says, "If anything ever happens to you, I will keep our family safe. I promise."`,
-                `${name} smiles. "Sit with me a moment. I do not get to see my parent enough lately."`
-            ] : [
-                `${name} says, "I can join any patrol you need."`,
-                `${name} stretches their shoulders. "I will keep the borders sharp."`,
-                `${name} dips their head. "Honor the warrior code."`
-            ];
+            const isTinyheartMatePlayerKit = isPlayerKit && game.tinyheartMateKit && kit.base === game.tinyheartMateKit;
+            const isTinyheartHerself = kit.base === 'Tiny' && game.tinyheartMateKit;
+            if (isTinyheartMatePlayerKit) {
+                lines = [
+                    `${name} purrs. "Tinyheart and I patrol the borders together now. We make a good pair."`,
+                    `${name} dips their head. "I never thought I'd settle. Tinyheart changed that the moment she dipped her head to me."`,
+                    `${name} says, "Tinyheart wants Ashstar to bless us at the next Gathering. I think I want it too."`
+                ];
+            } else if (isTinyheartHerself) {
+                const partner = game.playerKits.find((k) => k.base === game.tinyheartMateKit);
+                const partnerName = partner ? nameAtStage(partner, 'warrior') : 'your kit';
+                lines = [
+                    `Tinyheart bumps her shoulder against you. "${partnerName} is a keeper. I picked well, didn't I?"`,
+                    `Tinyheart purrs. "I never expected to fall for one of your litter. But here we are."`,
+                    `Tinyheart's whiskers twitch. "Soon you may be a grandparent. Imagine the size of that nursery."`
+                ];
+            } else if (isPlayerKit) {
+                lines = [
+                    `${name} purrs. "I am ready for any patrol you put me on. You taught me well."`,
+                    `${name} dips their head. "Whatever Moonclan needs. You and ${game.mate} raised me for this."`,
+                    `${name} says, "If anything ever happens to you, I will keep our family safe. I promise."`,
+                    `${name} smiles. "Sit with me a moment. I do not get to see my parent enough lately."`
+                ];
+            } else {
+                lines = [
+                    `${name} says, "I can join any patrol you need."`,
+                    `${name} stretches their shoulders. "I will keep the borders sharp."`,
+                    `${name} dips their head. "Honor the warrior code."`
+                ];
+            }
         }
         addNpc(name, stage === 'warrior' ? 'Warrior' : stage === 'apprentice' ? 'Apprentice' : 'Kit', x, groundY, kit.fur, kit.mark, () => {
             if (game.firstSolved && (stage === 'kit' || stage === 'apprentice')) {
@@ -1327,6 +1351,32 @@ function growthStage(bornDay) {
         return 'apprentice';
     }
     return 'kit';
+}
+
+const WARRIOR_SUFFIXES = ['heart', 'claw', 'fang', 'pelt', 'tail', 'foot', 'wing', 'flight', 'whisker', 'leaf', 'song', 'fur', 'breeze', 'stripe', 'storm', 'fall', 'shade', 'spirit'];
+
+function pickWarriorSuffix() {
+    return WARRIOR_SUFFIXES[Math.floor(Math.random() * WARRIOR_SUFFIXES.length)];
+}
+
+function warriorSuffixFor(kit) {
+    if (!kit.warriorSuffix) {
+        kit.warriorSuffix = pickWarriorSuffix();
+    }
+    return kit.warriorSuffix;
+}
+
+function nameAtStage(kit, stage) {
+    if (stage === 'warrior') {
+        if (kit.base === 'Moss') return 'Mossleaf';
+        const isPlayerLine = (game?.playerKits || []).includes(kit) || (game?.grandKits || []).includes(kit);
+        return isPlayerLine ? `${kit.base}${warriorSuffixFor(kit)}` : `${kit.base}heart`;
+    }
+    if (stage === 'apprentice') {
+        if (kit.base === 'Moss') return 'Mosspaw';
+        return `${kit.base}paw`;
+    }
+    return `${kit.base}kit`;
 }
 
 function renderAbandonedKitInCamp() {
@@ -3659,7 +3709,7 @@ function updateKitsTimeline() {
     }
     const apprenticeNames = [];
     const warriorNames = [];
-    [...game.nurseryKitAges, ...game.playerKits].forEach((kit) => {
+    [...game.nurseryKitAges, ...game.playerKits, ...(game.grandKits || [])].forEach((kit) => {
         const stage = growthStage(kit.bornDay);
         if (stage === 'apprentice' && !kit.apprenticeAnnounced) {
             kit.apprenticeAnnounced = true;
@@ -3678,14 +3728,62 @@ function updateKitsTimeline() {
                 warriorNames.push('Mosspaw is now Mossleaf, a full medicine cat alongside Rosesong');
                 return;
             }
-            addNote(`${kit.base}paw earned a warrior name.`);
-            warriorNames.push(`${kit.base}paw is now ${kit.base}heart`);
+            const warriorName = nameAtStage(kit, 'warrior');
+            addNote(`${kit.base}paw earned a warrior name: ${warriorName}.`);
+            warriorNames.push(`${kit.base}paw is now ${warriorName}`);
         }
     });
     if (apprenticeNames.length || warriorNames.length) {
         const announcements = [...apprenticeNames, ...warriorNames].join('. ');
         meetingText = `Let all cats old enough to catch their own prey gather beneath Highrock. ${announcements}.`;
         setMessage('Ashstar', meetingText);
+        return true;
+    }
+    if (updateTinyheartGrandkitTimeline()) {
+        return true;
+    }
+    return false;
+}
+
+function allPlayerKitsAreWarriors() {
+    if (!game.playerKits || game.playerKits.length === 0) return false;
+    return game.playerKits.every((kit) => growthStage(kit.bornDay) === 'warrior');
+}
+
+function updateTinyheartGrandkitTimeline() {
+    if (!game.kitsHad) return false;
+    if (game.kitsAllWarriorsDay == null && allPlayerKitsAreWarriors()) {
+        game.kitsAllWarriorsDay = game.day;
+    }
+    if (game.kitsAllWarriorsDay != null && !game.tinyheartMateKit && game.day >= game.kitsAllWarriorsDay + 4) {
+        const tinykit = game.nurseryKitAges.find((k) => k.base === 'Tiny');
+        const tinyAlive = tinykit && shouldShowLivingCat('Tinyheart');
+        if (!tinyAlive) return false;
+        const candidate = game.playerKits[Math.floor(Math.random() * game.playerKits.length)];
+        const candidateName = nameAtStage(candidate, 'warrior');
+        game.tinyheartMateKit = candidate.base;
+        game.tinyheartMateDay = game.day;
+        setMessage('Ashstar', `${candidateName} and Tinyheart have chosen each other as mates. Moonclan welcomes their bond beneath the great tree.`);
+        addNote(`${candidateName} and Tinyheart became mates.`);
+        return true;
+    }
+    if (game.tinyheartMateDay != null && !game.tinyheartKitBornDay && game.day >= game.tinyheartMateDay + 4) {
+        const parent = game.playerKits.find((k) => k.base === game.tinyheartMateKit);
+        const tinykit = game.nurseryKitAges.find((k) => k.base === 'Tiny');
+        if (!parent || !tinykit) return false;
+        const grandkitNames = ['Willow', 'Brackenflame', 'Hazel', 'Quail', 'Cinder', 'Stoneflower', 'Briar'];
+        const base = grandkitNames[Math.floor(Math.random() * grandkitNames.length)];
+        game.grandKits.push({
+            base,
+            bornDay: game.day,
+            fur: mixColors(parent.fur, tinykit.fur),
+            mark: mixColors(parent.mark, tinykit.mark),
+            gender: Math.random() < 0.5 ? 'Tom' : 'She-cat'
+        });
+        game.tinyheartKitBornDay = game.day;
+        const parentName = nameAtStage(parent, 'warrior');
+        setMessage('Camp', `${parentName} and Tinyheart have a newborn kit: ${base}kit. They carry both their parents' fur in their pelt.`);
+        addNote(`${parentName} and Tinyheart had a kit: ${base}kit.`);
         return true;
     }
     return false;
