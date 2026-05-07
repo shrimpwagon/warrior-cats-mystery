@@ -844,7 +844,7 @@ function updateHud() {
     const clueTotal = Math.min(2, foundClues.size);
     if (game.firstSolved) {
         const stats = moonclanFullTrustStats();
-        clueCount.textContent = `Trust ${stats.trusted}/${stats.total}${game.rose ? ' Rose' : ''}`;
+        clueCount.textContent = `Trust ${stats.trusted}/${stats.total} (in all)${game.rose ? ' Rose' : ''}`;
     } else {
         clueCount.textContent = `Clues ${clueTotal}/2`;
     }
