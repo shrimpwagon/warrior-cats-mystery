@@ -675,6 +675,7 @@ function resetGame(showOverlay = true) {
         preyPile: 10,
         sunclanState: 'aggressive',
         sunclanProgress: 0,
+        sunclanGiftDay: -1,
         dawnclanState: 'neutral',
         dawnclanProgress: 0
     };
@@ -900,7 +901,7 @@ function renderCats() {
                 'Greenleaf prey runs full. We have shared what we can.',
                 'Starclan has spoken of trials ahead. We will be ready.'
             ],
-            Sunstar: [
+            Hawkstar: [
                 'Sunclan reports strong patrols and full bellies.',
                 'A fox crossed our border but we drove it off.',
                 'Our medicine cat warns of fever in the queens.',
@@ -926,7 +927,7 @@ function renderCats() {
             npcLayer.appendChild(branch);
         }
         addNpc('Ashstar', 'Leader', 900, branchY, '#777a78', '#d4d4c8', () => setMessage('Ashstar', pickLine('Ashstar')));
-        addNpc('Sunstar', 'Leader', 1070, branchY, '#d09b42', '#5a3920', () => setMessage('Sunstar', pickLine('Sunstar')));
+        addNpc('Hawkstar', 'Leader', 1070, branchY, '#d09b42', '#5a3920', () => setMessage('Hawkstar', pickLine('Hawkstar')));
         addNpc('Dawnstar', 'Leader', 1240, branchY, '#b7a369', '#f2d597', () => setMessage('Dawnstar', pickLine('Dawnstar')));
 
         const moonclanPool = ['Cloudspark', 'Mistclaw', 'Brindleleaf', 'Sorreltail', 'Pinefoot'].filter((n) => shouldShowLivingCat(n));
@@ -1000,6 +1001,7 @@ function renderCats() {
         addExtraNpc('Nettleclaw', 760, groundY, () => clickOtherClanCat('Nettleclaw', 'sunclan'));
         addExtraNpc('Dawnpelt', 980, groundY, () => clickOtherClanCat('Dawnpelt', 'sunclan'));
         addExtraNpc('Russetfang', 1210, groundY, () => clickOtherClanCat('Russetfang', 'sunclan'));
+        markSunclanPreyHolder();
 
         const fence = document.createElement('div');
         fence.className = 'twoleg-fence';
@@ -1851,7 +1853,7 @@ function endInvestigationDay() {
     bumpDayTimer();
 }
 
-const AUTO_DAY_MS = 3 * 60 * 1000;
+const AUTO_DAY_MS = 3 * 60 * 1000 + 5 * 1000;
 
 function bumpDayTimer() {
     if (!game) {
@@ -1984,6 +1986,34 @@ function renderPlayerKitsInDen(layer) {
     });
 }
 
+function oakwhiskerStoryClans() {
+    return 'Oakwhisker settles deeper into the leaves. "Sunclan are the orderly ones. Their leader now is Hawkstar — they keep tally-sticks for every patrol and every piece of prey, sort their dens by rank. Sharp clan, sharp tongues. Hawkstar is not the first leader of Sunclan, mind you — the first was Sunstar himself. He fell so long ago that even Starclan no longer keeps his face among them. Three founders raised the clans together: Sunstar, Moonstar, and Dawnstar. Two are dust now. Only Dawnstar still breathes. He leads Dawnclan still, older than dirt itself, and Dawnclan lives a long, long sun\'s walk past the river fork — through marsh and pine. You cannot simply pad over there alone, young one. The road is too long, the ground too treacherous for a single warrior. That is why Dawnclan only meets us at Gatherings."';
+}
+
+function oakwhiskerStoryMurder() {
+    const culprit = firstMurderer;
+    if (!game.firstSolved) {
+        return `Oakwhisker's eyes narrow. "Willowfur's killer is still loose, kit. Find them first. When the truth is out, come back to me — I have more to tell."`;
+    }
+    return `Oakwhisker lowers his voice. "Listen close. ${culprit} did not kill Willowfur over a piece of prey. Many moons ago, ${culprit}'s own sister was named deputy of Moonclan. She was sharp-eyed and fair — the clan loved her. ${culprit} did not. One dusk, ${culprit} caught her alone in the brambles and tore her throat out, so the deputy spot would fall to a weaker cat. The clan never knew who had done it. But Willowfur did. She had been gathering moss in those same brambles, and she saw it all. She kept silent — fear, pity, hope ${culprit} would change. They never did. When Willowfur finally hinted she was going to speak, ${culprit} silenced her too. I know because I was in those brambles with Willowfur the night the deputy died. I was younger then, faster. I slipped away before they saw me. I have carried it in my old bones all these moons, waiting for the right ear. Yours, apparently."`;
+}
+
+function oakwhiskerStoryStorm() {
+    return 'Oakwhisker grunts a soft laugh. "The great storm hit this forest before your dam was even kitted. The river broke its banks and swallowed half our camp. We lost three warriors in one night to the rising water. Thunder cracked so loud the kits thought Starclan had finally turned its back on us. We rebuilt from nothing — every den you sleep in now was raised after that storm. Tell Snowkit when she is old enough. She should know what these walls cost."';
+}
+
+function showOakwhiskerStories() {
+    setMessage('Oakwhisker (Elder)', 'Oakwhisker tucks his tail close. "Sit, kit. I have stories. Pick one."');
+    accusePanel.innerHTML = '<button id="oakStoryClans" type="button">Tell me about the other clans</button><button id="oakStoryMurder" type="button">Tell me about the murder</button><button id="oakStoryStorm" type="button">Tell me about the great storm</button><button id="oakStoryDone" type="button">That\'s enough for now</button>';
+    document.getElementById('oakStoryClans').addEventListener('click', () => setMessage('Oakwhisker (Elder)', oakwhiskerStoryClans()));
+    document.getElementById('oakStoryMurder').addEventListener('click', () => setMessage('Oakwhisker (Elder)', oakwhiskerStoryMurder()));
+    document.getElementById('oakStoryStorm').addEventListener('click', () => setMessage('Oakwhisker (Elder)', oakwhiskerStoryStorm()));
+    document.getElementById('oakStoryDone').addEventListener('click', () => {
+        accusePanel.innerHTML = '';
+        setMessage('Oakwhisker (Elder)', 'Oakwhisker dips his head and closes his eyes. "Come back when you want another, young one."');
+    });
+}
+
 function talkInsideDen(name) {
     if (game.ghostMode && !isDeadCatName(name)) {
         setMessage(name, ghostFeelingLine(name));
@@ -1992,6 +2022,10 @@ function talkInsideDen(name) {
     const candidateData = extraCats[name] || cast.find((c) => c.name === name);
     if (game.firstSolved && candidateData?.rank === 'Warrior' && mateCandidates.has(name)) {
         speak({ name, rank: candidateData.rank, gender: candidateData.gender, fur: candidateData.fur, mark: candidateData.mark });
+        return;
+    }
+    if (name === 'Oakwhisker') {
+        showOakwhiskerStories();
         return;
     }
     const denLines = {
@@ -2297,6 +2331,32 @@ function rand(min, max) {
 
 const CLAN_FRIENDLY_LADDER = ['extremely-angry', 'aggressive', 'neutral', 'peaceful', 'good-friends'];
 
+const SUNCLAN_GIFT_CATS = ['Nettleclaw', 'Dawnpelt', 'Russetfang'];
+
+function sunclanFriendlyEnough() {
+    return game?.sunclanState === 'peaceful' || game?.sunclanState === 'good-friends';
+}
+
+function sunclanGiftHolder() {
+    if (!sunclanFriendlyEnough()) return null;
+    return SUNCLAN_GIFT_CATS[(game.day || 1) % SUNCLAN_GIFT_CATS.length];
+}
+
+function sunclanGiftPending() {
+    return sunclanGiftHolder() && game.sunclanGiftDay !== game.day;
+}
+
+function markSunclanPreyHolder() {
+    if (!sunclanGiftPending()) return;
+    const holder = sunclanGiftHolder();
+    const node = npcLayer.querySelector(`[data-cat-name="${holder}"]`);
+    if (!node || node.querySelector('.mouth-prey')) return;
+    const mouse = document.createElement('span');
+    mouse.className = 'mouth-prey';
+    mouse.style.cssText = 'position:absolute;width:14px;height:9px;background:#6b4326;border:1px solid #2c1a0e;border-radius:50%;top:14px;right:-6px;z-index:5;box-shadow:-3px 1px 0 #2c1a0e inset;';
+    node.appendChild(mouse);
+}
+
 function clanRelationLabel(state) {
     return state.replace('-', ' ');
 }
@@ -2346,7 +2406,7 @@ const CLAN_CAT_LINES = {
         'good-friends': `Dawnpelt purrs softly. "Come share tongues. Sunclan and Moonclan need not always squabble."`
     },
     Russetfang: {
-        'extremely-angry': `Russetfang's claws scrape the stone. "Sunstar will hear of this trespass. Pray it is me you face and not him."`,
+        'extremely-angry': `Russetfang's claws scrape the stone. "Hawkstar will hear of this trespass. Pray it is me you face and not him."`,
         'aggressive': `Russetfang growls, voice cold. "You are not welcome here, apprentice. Leave on your own paws or be carried."`,
         'neutral': `Russetfang straightens, deputy poise sharp. "State your purpose. I have a patrol to run."`,
         'peaceful': `Russetfang inclines his head. "Tell your leader Russetfang sends respect."`,
@@ -2398,6 +2458,17 @@ function fightOtherClanCat(name, clan) {
 function clickOtherClanCat(name, clan) {
     if (game.ghostMode) {
         setMessage(name, `${name} senses a starry presence and shivers. They cannot hear you.`);
+        return;
+    }
+    if (clan === 'sunclan' && sunclanGiftPending() && sunclanGiftHolder() === name && !game.preyInMouth) {
+        game.preyInMouth = true;
+        game.prey += 1;
+        game.sunclanGiftDay = game.day;
+        const node = npcLayer.querySelector(`[data-cat-name="${name}"] .mouth-prey`);
+        if (node) node.remove();
+        addNote(`${name} of Sunclan shared a piece of prey with you.`);
+        setMessage(name, `${name} drops a fresh-killed mouse at your paws. "Sunclan eats well today. Take this back to Moonclan."`);
+        updateHud();
         return;
     }
     if (game.preyInMouth) {
@@ -2623,6 +2694,10 @@ function offerPreyToCat(cat) {
     accusePanel.innerHTML = '<button id="preyYesBtn" type="button">Yes, give prey</button><button id="preyNoBtn" type="button">No, keep it</button>';
     document.getElementById('preyYesBtn').addEventListener('click', () => {
         accusePanel.innerHTML = previousPanel;
+        if (cat.name === 'Oakwhisker') {
+            setMessage('Oakwhisker', 'Oakwhisker shakes his greying muzzle. "Keep it, young one. My belly is full of stories these days. Take that catch to the kits or the apprentices — they need it more than my old bones do."');
+            return;
+        }
         givePrey(cat.name);
     });
     document.getElementById('preyNoBtn').addEventListener('click', () => {
@@ -2775,7 +2850,7 @@ function sleepInWarriorDen() {
     }
     if (game.ashstarAwayReturnDay && game.day >= game.ashstarAwayReturnDay) {
         game.ashstarAwayReturnDay = null;
-        setMessage('Ashstar', 'Ashstar returns from speaking with Sunstar. The border agreement is tense but peaceful.');
+        setMessage('Ashstar', 'Ashstar returns from speaking with Hawkstar. The border agreement is tense but peaceful.');
     }
     const apprenticeMeeting = updatePatrolAndApprenticeTimeline();
     const kitMeeting = updateKitsTimeline();
@@ -3320,7 +3395,7 @@ function finishGathering() {
     document.getElementById('sleepBtn').addEventListener('click', sleepInWarriorDen);
     if (first) {
         game.ashstarAwayReturnDay = game.day + 1;
-        setMessage('Ashstar', 'The Gathering ends. Ashstar announces they will leave to speak privately with Sunstar and return tomorrow.');
+        setMessage('Ashstar', 'The Gathering ends. Ashstar announces they will leave to speak privately with Hawkstar and return tomorrow.');
     } else {
         setMessage('Camp', 'The Gathering ends, and Moonclan returns home under starlight.');
     }

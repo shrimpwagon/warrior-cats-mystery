@@ -84,7 +84,7 @@ Late game:
 - Medicine cat: Rosesong
 - Elder: Oakwhisker
 - Starting nursery kits: Pebblekit, Mosskit, Tinykit
-- Sunclan cats: Nettleclaw, Dawnpelt, Russetfang, Sunstar
+- Sunclan cats: Nettleclaw, Dawnpelt, Russetfang, Hawkstar (current leader; the original Sunstar was a long-dead founder)
 - Dawnclan leader: Dawnstar
 - Starclan cats: Silverstar, Moonwhisper, Frostheart, Littlekit, and later story-dependent dead cats
 
