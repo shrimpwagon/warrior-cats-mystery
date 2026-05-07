@@ -688,7 +688,7 @@ function resetGame(showOverlay = true) {
         },
         rogueDefeated: false,
         patrolDeaths: [],
-        preyPile: 10,
+        preyPile: 15,
         kitsAllWarriorsDay: null,
         tinyheartMateKit: null,
         tinyheartMateDay: null,
