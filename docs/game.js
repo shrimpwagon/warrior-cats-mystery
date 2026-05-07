@@ -738,12 +738,10 @@ const SCARED_LINES = [
 
 function chooseClueGiversAndScared() {
     if (!game) return;
-    const eligible = cast.filter((c) => c.name !== firstMurderer);
+    game.scaredCats = ['Pinefoot', 'Mistclaw'].filter((n) => n !== firstMurderer);
+    const eligible = cast.filter((c) => c.name !== firstMurderer && !game.scaredCats.includes(c.name));
     const shuffled = [...eligible].sort(() => Math.random() - 0.5);
     game.clueGivers = shuffled.slice(0, 2).map((c) => c.name);
-    const scaredEligible = shuffled.slice(2)
-        .filter((c) => c.name !== 'Whiskerstar' && c.name !== 'Ashfall' && c.name !== 'Ravenstripe');
-    game.scaredCats = scaredEligible.slice(0, 4).map((c) => c.name);
 }
 
 function applyMysteryClues() {
