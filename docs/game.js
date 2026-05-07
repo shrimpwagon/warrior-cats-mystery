@@ -713,23 +713,26 @@ function chooseMurderer() {
 
 function applyMysteryClues() {
     const culprit = firstMurderer;
+    const culpritCat = cast.find((c) => c.name === culprit);
+    const color = culpritCat ? describeFur(culpritCat.fur) : 'dark';
+    const pronoun = culpritCat?.gender === 'She-cat' ? 'she-cat' : 'tom';
     cast.forEach((cat) => {
         if (cat.name === 'Whiskerstar') {
-            cat.clue = `Whiskerstar heard Willowfur threaten to expose ${culprit} before dawn.`;
+            cat.clue = `Whiskerstar heard Willowfur arguing with a ${pronoun} of ${color} pelt before dawn. Whoever it was, Willowfur threatened to expose them.`;
         } else if (cat.name === 'Ashfall') {
-            cat.clue = `Ashfall confirms ${culprit} left the warrior den after everyone settled.`;
+            cat.clue = `Ashfall counted nests in the dark. One ${pronoun} slipped out after the camp settled — a ${color} pelt, faint in the moonlight.`;
         } else if (cat.name === 'Mistclaw') {
-            cat.clue = `Mistclaw says the killer smelled of pine resin, the same scent on ${culprit}.`;
+            cat.clue = `Mistclaw says the killer reeked of pine resin. Their fur looked ${color} where it caught the moon.`;
         } else if (cat.name === culprit) {
-            cat.clue = `${culprit} seems perfectly calm, but you notice a small fresh scratch on one ear.`;
+            cat.clue = `${cat.name} stays oddly calm for a clan in mourning. A fresh scratch is healing on one ear.`;
         } else if (cat.name === 'Brindleleaf') {
-            cat.clue = `Brindleleaf saw fur matching ${culprit}'s pelt snagged on elder den brambles.`;
+            cat.clue = `Brindleleaf says fur was snagged on the elder den brambles. The shade was ${color} — not a common pelt in camp.`;
         } else if (cat.name === 'Cloudspark') {
-            cat.clue = `Cloudspark heard pawsteps racing toward ${culprit}'s nest.`;
+            cat.clue = `Cloudspark heard pawsteps splashing back through the mud after the attack, racing toward a ${color} cat's nest.`;
         } else if (cat.name === 'Pinefoot') {
-            cat.clue = `Pinefoot says ${culprit} handled pine resin while repairing the camp barrier.`;
+            cat.clue = `Pinefoot says only a few cats handled pine resin while repairing the camp barrier this moon — and one of them was a ${color} ${pronoun}.`;
         } else if (cat.name === 'Sorreltail') {
-            cat.clue = `Sorreltail says Willowfur found stolen prey hidden near ${culprit}'s nest.`;
+            cat.clue = `Sorreltail says Willowfur found stolen prey hidden under a ${color} warrior's nest. They were furious about it.`;
         }
     });
 }
@@ -1858,8 +1861,7 @@ function maybeEnableAccusation() {
     if (foundClues.size < 2 || game.firstSolved) {
         return;
     }
-    chapter.textContent = 'The pattern is clear. Name the killer.';
-    showAccusationButtons();
+    chapter.textContent = 'You have enough clues. Press Solve when you are ready to name the killer.';
 }
 
 function accuse(name) {
