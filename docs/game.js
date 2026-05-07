@@ -162,7 +162,7 @@ const genericLines = {
     Whiskerstar: ['I am keeping my own counsel for now. Speak with the warriors.', 'Lead with patience, kit. Not every cat is ready to share what they know.'],
     Ashfall: ['I have my hunches, but rumor is poison. I will keep mine to myself.', 'Trust the cats who choose to speak. Press the rest later.'],
     Mistclaw: ['The borders need watching, even now. I keep to my patrols.', 'Ask a cat who was actually awake that night.'],
-    Ravenstripe: ['Such terrible news. The clan is shaken.', 'I hope they find whoever did this. The clan needs peace.'],
+    Ravenstripe: ['Ravenstripe\'s tail lashes. "If I find out who did this to Willowfur, I will kill them myself. No exile. No trial. Just claws."', 'Ravenstripe growls low. "Bring me a name and I will finish this. That is all I will say."'],
     Brindleleaf: ['I have nothing useful to add. Sorry.', 'Some things a warrior keeps to themselves.'],
     Cloudspark: ['The forest feels colder lately. I do not like it.', 'I am sticking close to camp until this passes.'],
     Pinefoot: ['The fighting grounds keep me busy. I was not near the elder den.', 'Reedpaw and Fernpaw need their training. That is my focus.'],
@@ -742,7 +742,7 @@ function chooseClueGiversAndScared() {
     const shuffled = [...eligible].sort(() => Math.random() - 0.5);
     game.clueGivers = shuffled.slice(0, 2).map((c) => c.name);
     const scaredEligible = shuffled.slice(2)
-        .filter((c) => c.name !== 'Whiskerstar' && c.name !== 'Ashfall');
+        .filter((c) => c.name !== 'Whiskerstar' && c.name !== 'Ashfall' && c.name !== 'Ravenstripe');
     game.scaredCats = scaredEligible.slice(0, 4).map((c) => c.name);
 }
 
