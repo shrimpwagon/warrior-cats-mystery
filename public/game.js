@@ -681,8 +681,11 @@ function resetGame(showOverlay = true) {
         sunclanProgress: 0,
         sunclanGiftDay: -1,
         dawnclanState: 'neutral',
-        dawnclanProgress: 0
+        dawnclanProgress: 0,
+        clueGivers: [],
+        scaredCats: []
     };
+    chooseClueGiversAndScared();
     playerState.x = 120;
     playerState.y = 0;
     playerState.velocityY = 0;
@@ -711,6 +714,25 @@ function resetGame(showOverlay = true) {
 function chooseMurderer() {
     const eligible = cast.filter((cat) => !['Leader', 'Deputy'].includes(cat.rank));
     return eligible[Math.floor(Math.random() * eligible.length)].name;
+}
+
+const SCARED_LINES = [
+    "I... I don't want to talk about it. Please.",
+    "I didn't see anything that night. I swear it on Starclan.",
+    "Don't ask me. My pelt still crawls thinking about it.",
+    "Just leave it alone. I am not the one to ask.",
+    "Whoever did this is still in camp. I am keeping my head down.",
+    "Please — talk to a braver cat than me."
+];
+
+function chooseClueGiversAndScared() {
+    if (!game) return;
+    const eligible = cast.filter((c) => c.name !== firstMurderer);
+    const shuffled = [...eligible].sort(() => Math.random() - 0.5);
+    game.clueGivers = shuffled.slice(0, 2).map((c) => c.name);
+    const scaredEligible = shuffled.slice(2)
+        .filter((c) => c.name !== 'Whiskerstar' && c.name !== 'Ashfall');
+    game.scaredCats = scaredEligible.slice(0, 4).map((c) => c.name);
 }
 
 function applyMysteryClues() {
@@ -1674,18 +1696,22 @@ function speak(cat) {
         const line = questioned.has(cat.name)
             ? `It's awful. Willowfur was a good warrior. I hope they catch whoever did it soon.`
             : `Such terrible news about Willowfur. I was asleep when it happened. Sorry I can't help more.`;
-        if (!questioned.has(cat.name) && questioned.size < 2) {
-            addNote(`${cat.rank} ${cat.name}: ${cat.clue}`);
-        }
         questioned.add(cat.name);
         setMessage(`${cat.name}, ${cat.rank} (${cat.gender})`, line);
         maybeEnableAccusation();
         return;
     }
 
+    if (!game.firstSolved && (game.scaredCats || []).includes(cat.name)) {
+        const scared = SCARED_LINES[Math.floor(Math.random() * SCARED_LINES.length)];
+        setMessage(`${cat.name}, ${cat.rank} (${cat.gender})`, scared);
+        return;
+    }
+
     const culpritEyes = cast.find((c) => c.name === firstMurderer)?.eyes || 'pale';
     const line = (firstLines[cat.name]?.[questioned.has(cat.name) ? 1 : 0] || 'They twitch their whiskers.').replaceAll('{EYES}', culpritEyes);
-    if (!questioned.has(cat.name) && questioned.size < 2) {
+    const isClueGiver = !game.firstSolved && (game.clueGivers || []).includes(cat.name);
+    if (isClueGiver && !questioned.has(cat.name)) {
         addNote(`${cat.rank} ${cat.name}: ${cat.clue}`);
     }
     questioned.add(cat.name);
