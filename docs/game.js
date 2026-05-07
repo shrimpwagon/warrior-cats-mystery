@@ -616,6 +616,7 @@ function resetGame(showOverlay = true) {
         mouseTimer: null,
         trust: {},
         mate: null,
+        mateDay: null,
         rose: false,
         roseInMouth: false,
         roseWon: false,
@@ -2790,6 +2791,7 @@ function proposeMate(name) {
         game.rose = false;
         game.roseInMouth = false;
         game.mate = name;
+        game.mateDay = game.day;
         updateRoseVisual();
         addNote(`${name} became your mate after you gave the special rose.`);
         setMessage(name, `${name} accepts the special rose. "Yes. I will be your mate."`);
@@ -2819,6 +2821,7 @@ function askForCatMate(cat) {
     accusePanel.innerHTML = '<button id="acceptMateBtn" type="button">Yes</button><button id="declineMateBtn" type="button">Not yet</button>';
     document.getElementById('acceptMateBtn').addEventListener('click', () => {
         game.mate = cat.name;
+        game.mateDay = game.day;
         addNote(`${cat.name} asked you to be their mate, and you said yes.`);
         setMessage(cat.name, `${cat.name} touches their nose to yours. "Then it is settled. We are mates."`);
         accusePanel.innerHTML = '<button id="sleepBtn" type="button">Sleep in Warrior Den</button>';
@@ -2922,7 +2925,7 @@ function sleepInWarriorDen() {
         resolvePatrol();
         return;
     }
-    if (game.day === 10 && game.mate && !game.kitsAsked && !game.kitsHad) {
+    if (game.mate && game.mateDay != null && game.day >= game.mateDay + 10 && !game.kitsAsked && !game.kitsHad) {
         askForKits();
         return;
     }
@@ -3463,21 +3466,25 @@ function askForKits() {
     accusePanel.innerHTML = '<button id="kitsYesBtn" type="button">Have Kits</button><button id="kitsNoBtn" type="button">Not Yet</button>';
     document.getElementById('kitsYesBtn').addEventListener('click', () => {
         game.expectingKits = true;
-        game.kitsDueDay = game.day + 3;
-        addNote(`You and ${game.mate} are expecting kits in three days.`);
+        game.day += 3;
+        game.kitsDueDay = game.day;
+        decayPreyPile();
+        decayPreyPile();
+        decayPreyPile();
+        updatePreyPileLabel();
+        updateKitsTimeline();
         accusePanel.innerHTML = '<button id="sleepBtn" type="button">Sleep in Warrior Den</button>';
         document.getElementById('sleepBtn').addEventListener('click', sleepInWarriorDen);
-        const birthText = playerCarriesKits()
-            ? `You will have kits with ${game.mate}. They should arrive in three days.`
-            : `${game.mate} will have kits. They should arrive in three days.`;
-        setMessage('Nursery', birthText);
+        updateHud();
+        updateChapter();
+        renderAll();
     });
     document.getElementById('kitsNoBtn').addEventListener('click', () => {
         accusePanel.innerHTML = '<button id="sleepBtn" type="button">Sleep in Warrior Den</button>';
         document.getElementById('sleepBtn').addEventListener('click', sleepInWarriorDen);
         setMessage(game.mate, 'You decide to wait before having kits.');
     });
-    setMessage(game.mate, `Day 10 has come. Do you want to have kits with ${game.mate}?`);
+    setMessage(game.mate, `Ten sunrises have passed since you became mates. Do you want to have kits with ${game.mate}?`);
 }
 
 function updateKitsTimeline() {
