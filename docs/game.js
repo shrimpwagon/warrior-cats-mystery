@@ -727,13 +727,24 @@ function chooseMurderer() {
     return eligible[Math.floor(Math.random() * eligible.length)].name;
 }
 
-const SCARED_LINES = [
+const SCARED_LINES_BY_CAT = {
+    Pinefoot: [
+        'Pinefoot\'s ears flatten. "I... I cannot. Please don\'t ask me again, kit."',
+        'Pinefoot keeps her eyes on her paws. "Whoever did this is still in our camp. I am keeping my mouth shut."',
+        'Pinefoot mutters, "I just want to train Reedpaw and Fernpaw. Leave me out of this."',
+        'Pinefoot says quietly, "If I knew anything, I\'d tell Ashfall before I told you. Sorry."'
+    ],
+    Mistclaw: [
+        'Mistclaw shakes his head. "Look, kit, I am not getting tangled in this. Ask someone else."',
+        'Mistclaw\'s tail twitches. "I work the borders. I see plenty. But not this. Not this time."',
+        'Mistclaw lowers his voice. "Whoever it was could come for me next. I will not be the one to point a claw."',
+        'Mistclaw shrugs uncomfortably. "Sorry. My whiskers are staying down."'
+    ]
+};
+const SCARED_LINES_FALLBACK = [
     "I... I don't want to talk about it. Please.",
     "I didn't see anything that night. I swear it on Starclan.",
-    "Don't ask me. My pelt still crawls thinking about it.",
-    "Just leave it alone. I am not the one to ask.",
-    "Whoever did this is still in camp. I am keeping my head down.",
-    "Please — talk to a braver cat than me."
+    "Just leave it alone. I am not the one to ask."
 ];
 
 function chooseClueGiversAndScared() {
@@ -1712,8 +1723,8 @@ function speak(cat) {
     }
 
     if (!game.firstSolved && (game.scaredCats || []).includes(cat.name)) {
-        const scared = SCARED_LINES[Math.floor(Math.random() * SCARED_LINES.length)];
-        setMessage(`${cat.name}, ${cat.rank} (${cat.gender})`, scared);
+        const pool = SCARED_LINES_BY_CAT[cat.name] || SCARED_LINES_FALLBACK;
+        setMessage(`${cat.name}, ${cat.rank} (${cat.gender})`, rotatingText(`scared-${cat.name}`, pool));
         return;
     }
 
