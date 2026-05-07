@@ -787,6 +787,11 @@ function trustFor(name) {
     return game.trust[name] || 0;
 }
 
+function trustLabel(name) {
+    if (game?.mate === name) return '(Mates)';
+    return `Trust ${trustFor(name)}/${trustMax(name)}.`;
+}
+
 function dailyText(name, lines) {
     return lines[(game.day + name.length) % lines.length];
 }
@@ -1238,7 +1243,7 @@ function renderCampKits() {
                     game.trust[name] = trustFor(name) + 1;
                     addNote(`${name} trust increased to ${trustFor(name)}/${trustMax(name)} from spending time together.`);
                 }
-                const trustLine = ` Trust ${trustFor(name)}/${trustMax(name)}.`;
+                const trustLine = ` ${trustLabel(name)}`;
                 setMessage(`${name}${genderLabel}`, `${rotatingText(name, lines)}${trustLine}`);
                 return;
             }
@@ -1653,7 +1658,7 @@ function speak(cat) {
         } else {
             pool = postSolvePool(cat.name);
         }
-        const trust = ` Trust ${trustLvl}/${trustMax(cat.name)}.`;
+        const trust = ` ${trustLabel(cat.name)}`;
         setMessage(`${cat.name}, ${cat.rank} (${cat.gender})`, `${rotatingText(`${cat.name}-t${trustLvl}`, pool)}${trust}`);
         return;
     }
@@ -2764,8 +2769,10 @@ function givePrey(name = 'Sorreltail') {
     game.trust[name] = Math.min(trustMax(name), trustFor(name) + 1);
     addNote(`${name} trust increased to ${trustFor(name)}/${trustMax(name)}.`);
     const cat = cast.find((entry) => entry.name === name);
-    const mateLine = cat && canMateWith(cat) ? ' A special rose can make you mates at 3/3.' : ' This cat can be your friend, but not your mate.';
-    setMessage(name, `${name} accepts the prey. Trust ${trustFor(name)}/${trustMax(name)}.${mateLine}`);
+    const mateLine = game.mate === name
+        ? ''
+        : cat && canMateWith(cat) ? ' A special rose can make you mates at 3/3.' : ' This cat can be your friend, but not your mate.';
+    setMessage(name, `${name} accepts the prey. ${trustLabel(name)}${mateLine}`);
     updateHud();
 }
 
