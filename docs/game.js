@@ -1897,7 +1897,8 @@ function endInvestigationDay() {
     bumpDayTimer();
 }
 
-const AUTO_DAY_MS = 3 * 60 * 1000 + 5 * 1000;
+const AUTO_DAY_MS_INVESTIGATION = 2 * 60 * 1000 + 5 * 1000;
+const AUTO_DAY_MS_POST_SOLVE = 3 * 60 * 1000 + 5 * 1000;
 
 function bumpDayTimer() {
     if (!game) {
@@ -1907,7 +1908,8 @@ function bumpDayTimer() {
     if (!game.started || game.ended) {
         return;
     }
-    game.dayTimer = setTimeout(autoAdvanceDay, AUTO_DAY_MS);
+    const ms = game.firstSolved ? AUTO_DAY_MS_POST_SOLVE : AUTO_DAY_MS_INVESTIGATION;
+    game.dayTimer = setTimeout(autoAdvanceDay, ms);
 }
 
 function autoAdvanceDay() {
